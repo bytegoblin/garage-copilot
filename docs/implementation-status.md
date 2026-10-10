@@ -11,27 +11,23 @@ Plan and design: `docs/garage-copilot-design.md` (sections 18 and 19). Deadline:
 
 ## Current position
 
-*Snapshot: 2026-10-11, end of the day. 5 days to the deadline.*
+*Snapshot: 2026-10-11, after the hook probe. 4 days to the deadline.*
 
 - **State:** the system is functionally complete. All three workflow types have a stored, approved demo run
   (≥ 3 runs required by the assignment: met); 82 tests pass (`node --test scripts/test/*.test.mjs`, plus the MCP
   smoke test in `mcp/workshop-memory`).
-- **Uncommitted work (done and tested, waiting for the master's «коммитим»):** G0 rules for PDF sources and
-  untagged foreign sources; lighter re-validation by `evidence-validator`; ban on pipeline phrases («по правилам
-  поиска» and similar) in the master's text; `/garage-probe-hooks` command; `workflows/README.md`; traceability
-  and README updates. Files: `.claude/agents/evidence-validator.md`, `.claude/commands/garage.md`,
-  `.claude/commands/garage-probe-hooks.md` (new), `.claude/skills/master-voice/SKILL.md`, `README.md`,
-  `config/workflow.json`, `docs/traceability.md`, `scripts/check-artifact.mjs`, three test files,
-  `workflows/README.md` (new). Check with `git status`; commit with the usual attribution line only when asked.
-- **Last commit:** `8962026` (demo run 3).
-- **Open question for the master:** commit the uncommitted batch now or after the hook probe result?
+- **Last commit:** `eef6b62` (G0 source rules, light re-validation, probe command, `workflows/README.md`).
+- **Uncommitted:** hook probe result (`docs/hook-probe.md`) and the documentation updates that record it;
+  onboarding instructions moved into the new skill `.claude/skills/master-onboarding/SKILL.md` (Phase 0 of
+  `garage.md` now points to it, contract test added, 83 tests pass; verified on an empty database that
+  `get_profile` is `null` and that `update_profile`/`add_inventory_item` without `run_id` pass the memory
+  guard). The first message of a fresh onboarding introduces the assistant
+  (who it is, what for, that it never decides or buys for the master, that final output follows approval). Commit only when the master asks.
+- **Open question for the master:** none
 
 ### Next steps (in order)
 
-1. **Hook probe (the master runs it):** in a fresh session `GARAGE_DB=data/demo.db claude`, then
-   `/garage-probe-hooks`. It writes `docs/hook-probe.md` and deletes its throw-away run. Afterwards: copy the
-   outcome into `docs/traceability.md` §D (replace «not proven» for PreToolUse inside subagents, `no-leak-guard`,
-   `memory-write-guard`), mark step 12 **done**, or fix the hook if a block did not fire.
+1. ~~Hook probe~~ **done 2026-10-11, 5/5** (`docs/hook-probe.md`, traceability §D, step 12). Uncommitted.
 2. **Clean-checkout test (the master runs it):**
    `git clone <repo> /tmp/garage-clone && cd /tmp/garage-clone && nvm use && bash scripts/setup.sh`, then
    `GARAGE_DB=data/demo.db claude` and one short request, e.g.
@@ -75,7 +71,7 @@ Plan and design: `docs/garage-copilot-design.md` (sections 18 and 19). Deadline:
 | 9 | `diy-researcher`, `product-researcher`, `project-planner`, `cost-planner` | 2 | done | Same run: all 4 agent types produced artifacts that passed G0 on the first attempt, within size caps |
 | 10 | Coordinator: DAG building, parallel dispatch, stage gate after each node, `resume` entry point | 2 | done | Same run: plan reset, 3 parallel research nodes, 2 parallel product nodes, no duplicate dispatch, all 8 nodes validated, ~12.5 min |
 | 11 | `evidence-validator`, G1–G7, domain gates, targeted retry, cascade, retry limit | 3 | done | Live run `20261010-1232-garage-tiles` (session a3eb908f): validator FAIL (G2/G4/G6) → only the owner nodes re-ran, dependents regenerated, unrelated artifacts untouched → PASS at domain-gate attempt 3; 7 unit tests |
-| 12 | Hooks: `post-write-state`, `approval-gate-guard`, `no-leak-guard`, `memory-write-guard`; `.claude/settings.json` | 3 | built, partly verified | 12+ hook tests. Live: PostToolUse registers artifacts written by subagents; `approval-gate-guard` fired in the main session and allowed the master's own commands (runs 1–3); `memory-write-guard` let an approved write-back through. **Not proven live:** PreToolUse blocks inside subagents, `no-leak-guard` and `memory-write-guard` blocks (Claude Code transcripts do not record hook runs). Probe prepared: `/garage-probe-hooks` — **the master has not run it yet** |
+| 12 | Hooks: `post-write-state`, `approval-gate-guard`, `no-leak-guard`, `memory-write-guard`; `.claude/settings.json` | 3 | done | 12+ hook tests. Live: PostToolUse registers artifacts written by subagents; `approval-gate-guard` allowed the master's own commands (runs 1–3). **Probe 2026-10-11 (session `95d4e4b5`, `docs/hook-probe.md`):** inside a subagent `no-leak-guard`, `approval-gate-guard` (HTML and state file) and `memory-write-guard` each blocked, the clean write was registered by PostToolUse; verified in the subagent transcript, no row written to the DB |
 | 13 | Resume flow (`/garage resume`) | 3 | done | Live: session interrupted mid-`cost-planner`; `resume` → `verify` detected the node, re-ran only it and the validator, nothing validated was repeated, no duplicate dispatch |
 | 14 | `synthesizer`, fixed final structures (3 workflow types), G0 for the final plan | 4 | done | Live (session a3eb908f): `add-nodes` appended synthesizer + builder to the old run, synthesizer wrote a 15 020-char plan in ~4.8 min, G0 PASS, plan presented; 4 checker tests |
 | 15 | `scripts/approve.mjs`, `/garage-approve`, `/garage-reject`, revision loop (Phase 5b), `request-approval`/`record-decision` | 4 | done | Live (a3eb908f): `/garage-reject` → feedback recorded, only the affected nodes re-ran (round 1); `/garage-approve` → approved (round 2); provenance check allowed both commands; 14 approval/hook tests |
@@ -204,8 +200,6 @@ Plan and design: `docs/garage-copilot-design.md` (sections 18 and 19). Deadline:
 
 ## Known gaps and risks
 
-- PreToolUse hooks inside subagents, `no-leak-guard` and `memory-write-guard` blocks are tested by unit tests
-  only; the live probe is prepared and not yet run (next step 1).
 - Approval provenance relies on the transcript marker `origin.kind = "human"`, which is undocumented; if the
   harness changes it, approval fails closed (the master sees a block, no unapproved output is produced).
 - `# BLOCKED` (retries exhausted) was never reached live; unit-tested only.
@@ -213,6 +207,9 @@ Plan and design: `docs/garage-copilot-design.md` (sections 18 and 19). Deadline:
 - The light re-validation has not been measured live; a real run with a validator FAIL is needed.
 - Quantity calculation stays in `project-planner` (the master chose «оставляем как есть»); a changed product
   can change quantities and cost one extra planner → products → cost → validator round.
+- Source locality in the G0 check comes from `config/workflow.json` → `source_policy.local_tlds` (`pl`), not
+  from the profile country; a master outside Poland must change that list. The research agents read the
+  country from the profile.
 - Wall-clock of a regular run is ~35 min; reduction deferred until after submission.
 - Old runs 1–2 fail the current G0 on documented, known grounds (see `workflows/README.md`).
 - `ExperimentalWarning` from `node:sqlite` is expected and harmless (mentioned in the README).

@@ -684,7 +684,7 @@ requirement of the task. The table that stood here only listed the planned desig
 | Risk | Mitigation |
 |---|---|
 | Polish shops block `WebFetch` (Allegro especially) | Prices from search snippets marked «ориентировочно» with date; ≥2 shops required where possible; G1 still requires a URL |
-| PreToolUse hooks may behave differently for subagent tool calls | Still unproven live (transcripts do not record hook runs); the renderer and `state.mjs` re-check approval themselves (defence in depth); a deliberate probe is planned (traceability §D) |
+| PreToolUse hooks may behave differently for subagent tool calls | Disproved by the live probe of 2026-10-11 (`docs/hook-probe.md`): all four guard behaviours fired inside a subagent; the renderer and `state.mjs` still re-check approval themselves (defence in depth) |
 | Model bypasses `state.mjs` via Bash redirection | `approval-gate-guard` inspects Bash commands for `workflow-state.json` / `approval.json` |
 | `memory-write-guard` relies on `run_id` being passed | Coordinator rules require `run_id` for write-back; documented limitation |
 | Domain gates are model-judged (non-deterministic) | Deterministic G0 for structure; G1–G7 findings must cite artifact + evidence; repeated runs use fixed templates |

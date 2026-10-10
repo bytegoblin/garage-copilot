@@ -64,16 +64,20 @@ scripts/test/*.test.mjs` (79) and `cd mcp/workshop-memory && npm test`.
 
 ## D. Hooks: what is actually proven
 
-Claude Code transcripts do not record hook executions, so "fired" can only be shown by a visible effect.
+Main-thread transcripts do not record hook executions, but a blocked call inside a subagent appears in the
+subagent transcript as a `PreToolUse:<tool> hook error … Blocked: …` tool result. The deliberate probe
+(`docs/hook-probe.md`, session `95d4e4b5`, 2026-10-11) used exactly that.
 
 | Hook | Tests | Live evidence | Gap |
 |---|---|---|---|
-| `approval-gate-guard` (PreToolUse) | 11 | Blocked the assistant's own `approve.mjs` call in the main thread (session `a3eb908f`); allowed the master's `/garage-reject` and `/garage-approve` | Not seen inside a subagent |
-| `post-write-state` (PostToolUse) | 1 | Coordinator's explicit `artifact-written` was a silent no-op after subagent writes, i.e. the hook had already recorded them | Inferred, not directly observed |
-| `no-leak-guard` (PreToolUse) | 3 | Never blocked anything live (plans were clean) | No live block observed |
-| `memory-write-guard` (PreToolUse) | 1 | `upsert_project` with `run_id` passed after approval | No live block observed |
+| `approval-gate-guard` (PreToolUse) | 11 | Blocked the assistant's own `approve.mjs` call in the main thread (session `a3eb908f`); allowed the master's `/garage-reject` and `/garage-approve`. **Probe, inside a subagent:** blocked a write of `output/garage-plan.html` before approval and a direct write of `workflow-state.json` | none |
+| `post-write-state` (PostToolUse) | 1 | Coordinator's explicit `artifact-written` was a silent no-op after subagent writes. **Probe:** after the subagent's plain `Write` of `research.md`, `state.mjs summary` showed `diy-researcher created` with no coordinator call | none |
+| `no-leak-guard` (PreToolUse) | 3 | **Probe, inside a subagent:** blocked a `final-plan.md` write that contained `research-bonding.md` and `cost-planner` | none |
+| `memory-write-guard` (PreToolUse) | 1 | `upsert_project` with `run_id` passed after approval. **Probe, inside a subagent:** blocked MCP `record_purchase` with the `run_id` of an unapproved run; no row was written | none |
 
-Planned: one deliberate probe in a subagent (write an internal name into the final plan) and record the result.
+Verdict of the probe: 5 of 5 attempts matched the expectation. Not covered: a hook that is skipped when the
+harness itself changes (no evidence either way); the heuristic Bash inspection remains best-effort by design
+(see E and the design document), while the Write/Edit/MCP checks and the hash check are exact.
 
 ## E. Deviations from the wording of the task
 
@@ -96,8 +100,7 @@ Run 3 passes all checks.
 
 ## F. Open items before submission
 
-1. Live hook probe in a subagent (`/garage-probe-hooks`, run by the master; result goes to `docs/hook-probe.md`
-   and §D).
+1. ~~Live hook probe in a subagent~~ **done 2026-10-11**, 5/5 (`docs/hook-probe.md`).
 2. Start Claude Code in a fresh clone and run one short `/garage` (`setup.sh` and the tests already pass in a clone).
 3. Measure the light re-validation on a run with a validator FAIL.
 4. Final README read-through and secret scan.
