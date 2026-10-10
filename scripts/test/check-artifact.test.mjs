@@ -192,3 +192,26 @@ test('validation: missing gate, inconsistent result and incomplete FAIL row fail
   assert.match(r.stdout, /FAIL row needs both a finding and a fix hint/);
   assert.match(r.stdout, /meta\.result is PASS but the table has FAIL rows/);
 });
+
+test('a small overshoot of the size target passes with a note, a large one fails', () => {
+  const row = '| Позиция | Модель | Параметры | Магазин | 1 PLN | https://example.com/x | 2026-10-10 |\n';
+  const base = productsDoc(GOOD_ROW);
+  const want = 9000 + 400; // above the 9000 target, below the 1.15 hard limit
+  const pad = row.repeat(Math.ceil((want - [...base].length) / [...row].length));
+  writeFileSync(join(artifacts, 'products.md'), productsDoc(GOOD_ROW + '\n' + pad));
+  let r = check('products.md');
+  assert.equal(r.status, 0, r.stdout);
+  assert.match(r.stdout, /\[note\] artifact is \d+ characters, above the target 9000/);
+
+  writeFileSync(join(artifacts, 'products.md'), productsDoc(GOOD_ROW + '\n' + row.repeat(120)));
+  r = check('products.md');
+  assert.equal(r.status, 1);
+});
+
+test('validation: gate ids with names are accepted', () => {
+  const rows = ['G1 Источники', 'G2 Бюджет', 'G3 Без дублей', 'G4 Соответствие', 'G5 Безопасность', 'G6 Требования', 'G7 Неопределённость']
+    .map((g) => `| ${g} | PASS | — | — | ok | — |`);
+  writeFileSync(join(artifacts, 'validation.md'), VALIDATION('PASS', rows));
+  const r = check('validation.md');
+  assert.equal(r.status, 0, r.stdout);
+});

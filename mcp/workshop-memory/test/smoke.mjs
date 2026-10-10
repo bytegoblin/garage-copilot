@@ -71,6 +71,14 @@ try {
   assert.equal(proj2.id, proj.id);
   assert.equal(proj2.status, 'in_progress');
 
+  // An existing idea project is updated by id (and gets the run id) instead of being duplicated.
+  const seeded = (await call('list_projects', { status: 'idea' })).data.projects[0];
+  const adopted = (await call('upsert_project', { id: seeded.id, run_id: 'smoke-run-2', status: 'planned' })).data.project;
+  assert.equal(adopted.id, seeded.id);
+  assert.equal(adopted.run_id, 'smoke-run-2');
+  assert.equal(adopted.status, 'planned');
+  assert.equal(adopted.title, seeded.title);
+
   const planned = (await call('list_projects', { status: 'in_progress' })).data.projects;
   assert.equal(planned.length, 1);
 

@@ -1,0 +1,8 @@
+{
+  "nodes": [
+    {"id": "synthesizer", "agent": "synthesizer", "artifact": "artifacts/final-plan.md",
+     "depends_on": ["evidence-validator"]},
+    {"id": "final-output-builder", "agent": "final-output-builder", "artifact": "output/garage-plan.html",
+     "depends_on": ["synthesizer"], "gate": "approval"}
+  ]
+}

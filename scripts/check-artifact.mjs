@@ -5,6 +5,7 @@
 import { readFileSync, existsSync } from 'node:fs';
 import { basename, dirname, resolve, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { findLeaks } from '../.claude/hooks/lib/leaks.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const TEMPLATES = join(ROOT, '.claude', 'skills', 'artifact-validator', 'templates');
@@ -20,16 +21,18 @@ const OWNERS = {
   validation: 'evidence-validator',
   'final-plan': 'synthesizer',
 };
-const NEEDS_SOURCE_URLS = new Set(['research', 'products']);
+const NEEDS_SOURCE_URLS = new Set(['research', 'products', 'final-plan']);
 const PRICE_SECTIONS = { products: 'Кандидаты', budget: 'Список покупок' };
 const COVERAGE_TYPES = new Set(['research', 'products', 'project-plan', 'budget']);
 
 const findings = [];
+const notes = [];
 const add = (msg) => findings.push(msg);
 
 function finish() {
   if (findings.length === 0) {
     console.log('PASS');
+    for (const n of notes) console.log(`- [note] ${n}`);
     process.exit(0);
   }
   console.log('FAIL');
@@ -48,13 +51,44 @@ if (!existsSync(file)) {
   finish();
 }
 
+// ----- final HTML output: standalone, no scripts or external resources, same sections as the plan -----
+if (file.endsWith('.html')) {
+  const html = readFileSync(file, 'utf8');
+  if (!/^\s*<!doctype html>/i.test(html)) add('missing <!doctype html>');
+  if (!/<html[^>]*\blang="ru"/i.test(html)) add('<html lang="ru"> is required');
+  if (!/<title>[^<]+<\/title>/i.test(html)) add('missing <title>');
+  if (/<script\b/i.test(html)) add('scripts are not allowed in the guide');
+  if (/<link\b/i.test(html) || /\bsrc=["']https?:/i.test(html) || /@import/i.test(html)) add('external resources are not allowed; the guide must be standalone');
+  if (/\{\{[A-Z_]+\}\}/.test(html)) add('unfilled template placeholder');
+  const leaks = findLeaks(html.replace(/<[^>]+>/g, ' '));
+  if (leaks.length) add(`internal names in user-facing text: ${leaks.join(', ')}`);
+  const plan = join(dirname(dirname(file)), 'artifacts', 'final-plan.md');
+  if (existsSync(plan)) {
+    const wanted = [...readFileSync(plan, 'utf8').matchAll(/^##\s+(.+?)\s*$/gm)].map((m) => m[1]);
+    const got = [...html.matchAll(/<h2[^>]*>([\s\S]*?)<\/h2>/g)].map((m) => m[1].replace(/<[^>]+>/g, '').replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&lt;/g, '<').replace(/&gt;/g, '>').trim());
+    if (JSON.stringify(wanted) !== JSON.stringify(got)) add(`sections differ from the plan; expected: ${wanted.join(' > ')}`);
+  } else {
+    add('final plan is missing next to the output');
+  }
+  finish();
+}
+
 const name = basename(file, '.md');
 const type = name.replace(/^(research|products)-[a-z0-9-]+$/, '$1');
 if (!OWNERS[type]) {
   add(`unknown artifact type for file name: ${basename(file)}`);
   finish();
 }
-const templateFile = join(TEMPLATES, `${type}.md`);
+let templateName = type;
+if (type === 'final-plan') {
+  const wt = readFileSync(file, 'utf8').match(/^workflow_type:\s*(\S+)\s*$/m)?.[1];
+  if (!['project-plan', 'purchase-decision', 'how-to'].includes(wt)) {
+    add('meta.workflow_type must be project-plan, purchase-decision or how-to');
+    finish();
+  }
+  templateName = `final-plan-${wt}`;
+}
+const templateFile = join(TEMPLATES, `${templateName}.md`);
 if (!existsSync(templateFile)) {
   add(`no template for artifact type ${type}`);
   finish();
@@ -87,6 +121,13 @@ if (!metaMatch) {
   if (RUN_ID_RE.test(runId) && meta.run !== runId) add(`meta.run is "${meta.run}", expected "${runId}"`);
   if (!meta.version || !/^\d+$/.test(meta.version)) add('meta.version must be a number');
   if (type === 'validation' && !['PASS', 'FAIL'].includes(meta.result)) add('meta.result must be PASS or FAIL');
+  if (type === 'final-plan') {
+    const stateFile = join(dirname(dirname(file)), 'workflow-state.json');
+    if (existsSync(stateFile)) {
+      const wt = JSON.parse(readFileSync(stateFile, 'utf8')).workflow_type;
+      if (wt && meta.workflow_type !== wt) add(`meta.workflow_type is "${meta.workflow_type}", the run is "${wt}"`);
+    }
+  }
   if (type === 'requirements') {
     if (!['ready', 'needs-answers'].includes(meta.status)) add('meta.status must be ready or needs-answers');
     if (!['project-plan', 'purchase-decision', 'how-to'].includes(meta.workflow_type)) {
@@ -135,8 +176,9 @@ if (type === 'validation') {
       add(`gate table row has ${c.length} cells, expected 6: ${c.join(' | ').slice(0, 60)}`);
       continue;
     }
-    const [gate, status, , node] = c;
-    if (!/^G[1-7]$/.test(gate)) add(`unknown gate id "${gate}"`);
+    const [rawGate, status, , node] = c;
+    const gate = (rawGate.match(/^G[1-7]\b/) || [rawGate])[0]; // "G1 Источники" is accepted as G1
+    if (!/^G[1-7]$/.test(gate)) add(`unknown gate id "${rawGate}"`);
     if (!['PASS', 'FAIL', 'N/A'].includes(status)) add(`${gate}: status must be PASS, FAIL or N/A, got "${status}"`);
     seen.add(gate);
     if (status === 'FAIL') {
@@ -180,10 +222,21 @@ if (PRICE_SECTIONS[type]) {
 }
 
 // ----- size cap: keeps artifacts reviewable and downstream context small -----
+// The configured number is the target given to the agents. Small overshoots pass with a note; only a clear
+// overshoot (above artifact_hard_factor x target) fails the gate and costs a retry.
 const maxChars = CONFIG.artifact_max_chars?.[type];
+const hardChars = maxChars ? Math.floor(maxChars * (CONFIG.artifact_hard_factor || 1)) : null;
 const chars = [...text].length;
-if (maxChars && chars > maxChars) {
+if (maxChars && chars > hardChars) {
   add(`artifact is ${chars} characters, limit for ${type} is ${maxChars}: shorten it (reference upstream artifacts instead of restating them, cut repetition)`);
+} else if (maxChars && chars > maxChars) {
+  notes.push(`artifact is ${chars} characters, above the target ${maxChars} for ${type}; accepted, aim shorter next time`);
+}
+
+// ----- final plan is user-facing: no internal names -----
+if (type === 'final-plan') {
+  const leaks = findLeaks(text);
+  if (leaks.length) add(`internal names in user-facing text: ${leaks.join(', ')}`);
 }
 
 // ----- leftovers -----

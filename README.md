@@ -25,6 +25,10 @@ Implemented so far:
 | `product-researcher` | `.claude/agents/product-researcher.md` | Concrete products and local prices, checked against what you own |
 | `project-planner` | `.claude/agents/project-planner.md` | Phases, tools, materials with quantities |
 | `cost-planner` | `.claude/agents/cost-planner.md` | Shopping list, totals, budget fit, DIY vs ready-made |
+| `synthesizer` | `.claude/agents/synthesizer.md` | Merges validated artifacts into one final plan in the fixed structure of the workflow type, in the master's voice |
+| `final-output-builder` | `.claude/agents/final-output-builder.md` | Runs the deterministic renderer after approval; owns the HTML guide |
+| Approval commands | `.claude/commands/garage-approve.md`, `garage-reject.md`, `scripts/approve.mjs` | The master's explicit decision, bound to the SHA-256 of the exact plan that was shown |
+| HTML renderer | `scripts/render-html.mjs`, `.claude/skills/garage-html-theme/` | Standalone, deterministic HTML from the approved plan; refuses without a matching approval |
 | `evidence-validator` | `.claude/agents/evidence-validator.md` | Independent gates G1–G7 (sources, budget arithmetic, duplicates, fit, safety, requirement coverage, uncertainty); maps each failure to the owner node |
 | Hooks | `.claude/hooks/`, `.claude/settings.json` | `approval-gate-guard` and `no-leak-guard` (PreToolUse), `memory-write-guard` (PreToolUse on memory tools), `post-write-state` (PostToolUse) |
 | Skills | `.claude/skills/` | `artifact-validator` (structure and citation check, templates), `research-evidence` (research budget, local sources first, prices, uncertainty), `trade-tiling` and `trade-carpentry` (research playbooks: question checklists per trade) |
@@ -69,6 +73,20 @@ On the first start Claude Code asks you to approve the project MCP server `works
 
 On the first run the coordinator introduces itself and asks a few questions about you and your workshop
 (city, currency, tools, skill level) and stores the answers in the database.
+
+## Approve or reject a plan
+
+When a plan is ready the coordinator shows it and stops. Only your explicit command moves it forward:
+
+```text
+/garage-approve                         # approve the plan that was shown (run id optional if only one waits)
+/garage-reject Найди клей подешевле     # reject and say what to change; a revised plan is shown again
+```
+
+Approval is recorded together with the SHA-256 of the exact plan text you were shown. If the plan changes
+afterwards the approval is void. Only after a valid approval the guide is rendered to
+`workflows/<run-id>/output/garage-plan.html`, a standalone page you can open or print, and the project is
+written to your workshop memory. Typing "ok" or "approved" in the chat does nothing by design.
 
 ## Tests
 

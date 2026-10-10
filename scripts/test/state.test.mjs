@@ -379,3 +379,66 @@ test('verify does not accept an artifact left by an earlier attempt as the inter
   assert.equal(nodeOf(id, 'diy-researcher').status, 'stale');
   assert.match(nodeOf(id, 'diy-researcher').last_error, /interrupted/);
 });
+
+test('the synthesizer is released only after the validator domain gates passed', () => {
+  const id = newConfirmedRun('synth-gate');
+  const file = join(dir, id, 'plan.json');
+  writeFileSync(file, JSON.stringify({ nodes: [
+    { id: 'diy-researcher', agent: 'diy-researcher', artifact: 'artifacts/research.md' },
+    { id: 'evidence-validator', agent: 'evidence-validator', artifact: 'artifacts/validation.md', depends_on: ['diy-researcher'] },
+    { id: 'synthesizer', agent: 'synthesizer', artifact: 'artifacts/final-plan.md', depends_on: ['evidence-validator'] },
+  ] }));
+  run('set-plan', id, file);
+  pass(id, 'diy-researcher', 'artifacts/research.md');
+  validate(id, PASS_ROWS);
+
+  const before = run('ready', id);
+  assert.match(before, /domain-gates\tevidence-validator/);
+  assert.doesNotMatch(before, /dispatch\tsynthesizer/);
+  assert.notEqual(tryRun('start', id, 'synthesizer').status, 0);
+
+  run('domain-gates', id);
+  assert.match(run('ready', id), /dispatch\tsynthesizer/);
+  run('start', id, 'synthesizer');
+});
+
+test('a failed domain gate keeps the synthesizer locked until the report is re-validated', () => {
+  const id = newConfirmedRun('synth-lock');
+  const file = join(dir, id, 'plan.json');
+  writeFileSync(file, JSON.stringify({ nodes: [
+    { id: 'diy-researcher', agent: 'diy-researcher', artifact: 'artifacts/research.md' },
+    { id: 'evidence-validator', agent: 'evidence-validator', artifact: 'artifacts/validation.md', depends_on: ['diy-researcher'] },
+    { id: 'synthesizer', agent: 'synthesizer', artifact: 'artifacts/final-plan.md', depends_on: ['evidence-validator'] },
+  ] }));
+  run('set-plan', id, file);
+  pass(id, 'diy-researcher', 'artifacts/research.md');
+  const rows = PASS_ROWS.map((r) => r);
+  rows[0] = '| G1 | FAIL | research.md | diy-researcher | no sources | add sources |';
+  validate(id, rows);
+  run('domain-gates', id);
+  assert.doesNotMatch(run('ready', id), /synthesizer/);
+  assert.equal(nodeOf(id, 'diy-researcher').status, 'stale');
+});
+
+test('a master revision (invalidate) gives the node and its dependents a fresh retry budget', () => {
+  const id = newConfirmedRun('freshbudget');
+  run('set-plan', id, tilesPlan(id));
+  pass(id, 'diy-researcher', 'artifacts/research.md');
+  pass(id, 'project-planner', 'artifacts/project-plan.md');
+  run('fail', id, 'project-planner', 'x');
+  run('fail', id, 'diy-researcher', 'y');
+  assert.equal(nodeOf(id, 'diy-researcher').retries, 1);
+  run('invalidate', id, 'diy-researcher', '--cascade', '--reason', 'master feedback');
+  assert.equal(nodeOf(id, 'diy-researcher').retries, 0);
+  assert.equal(nodeOf(id, 'project-planner').retries, 0);
+});
+
+test('domain gates accept gate names next to the id in the gate column', () => {
+  const id = validatorRun('named-gates');
+  const names = ['G1 Источники', 'G2 Бюджет', 'G3 Без дублей', 'G4 Соответствие', 'G5 Безопасность', 'G6 Требования', 'G7 Неопределённость'];
+  const rows = names.map((n) => `| ${n} | PASS | — | — | ok | — |`);
+  rows[1] = '| G2 Бюджет | FAIL | budget.md | cost-planner | sum wrong | recompute |';
+  validate(id, rows);
+  assert.match(run('domain-gates', id), /FAIL/);
+  assert.equal(nodeOf(id, 'cost-planner').status, 'stale');
+});

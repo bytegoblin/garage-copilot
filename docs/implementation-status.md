@@ -11,10 +11,12 @@ Plan and design: `docs/garage-copilot-design.md` (sections 18 and 19). Deadline:
 
 ## Current position
 
-- **Last completed step:** 13 (Day 3). The run `20261010-1232-garage-tiles` is COMPLETE up to validation
-  (all 7 gates PASS, ~19 min for the resumed leg).
-- **Next step:** Day 4 — step 14 `synthesizer` + `final-plan.md` template, then step 15 approval commands,
-  step 16 HTML builder, step 17 memory write-back.
+- **Last completed step:** 17 (Day 4) — the full chain ran live end to end on run
+  `20261010-1232-garage-tiles`: requirements → … → validation → synthesis → reject → revision → approve →
+  HTML → memory write-back → `completed`.
+- **Next step:** Day 5 — (a) decide on moving quantity calculation from `project-planner` to `cost-planner`
+  (see decisions), (b) demo runs 1–3 on a fresh demo DB (+ one resume, one forced gate failure),
+  (c) README finish, clean-checkout test, secret scan, traceability table.
 - **Open question for the master:** none
 
 ## Steps
@@ -34,10 +36,10 @@ Plan and design: `docs/garage-copilot-design.md` (sections 18 and 19). Deadline:
 | 11 | `evidence-validator`, G1–G7, domain gates, targeted retry, cascade, retry limit | 3 | done | Live run `20261010-1232-garage-tiles` (session a3eb908f): validator FAIL (G2/G4/G6) → only the owner nodes re-ran, dependents regenerated, unrelated artifacts untouched → PASS at domain-gate attempt 3; 7 unit tests |
 | 12 | Hooks: `post-write-state`, `approval-gate-guard`, `no-leak-guard`, `memory-write-guard`; `.claude/settings.json` | 3 | built, partly verified | 12 hook tests. Live: PostToolUse registers artifacts written by subagents (coordinator's own `artifact-written` call was a silent no-op); `approval-gate-guard` fired in the main session. **Not yet exercised live:** PreToolUse inside subagents, `no-leak-guard`, `memory-write-guard` (need Day 4 stages) |
 | 13 | Resume flow (`/garage resume`) | 3 | done | Live: session interrupted mid-`cost-planner`; `resume` → `verify` detected the node, re-ran only it and the validator, nothing validated was repeated, no duplicate dispatch |
-| 14 | `synthesizer`, fixed final structures | 4 | todo | |
-| 15 | `scripts/approve.mjs`, `/garage-approve`, `/garage-reject`, revision loop | 4 | todo | |
-| 16 | `garage-html-theme` skill, `final-output-builder` | 4 | todo | |
-| 17 | Memory write-back after approval | 4 | todo | |
+| 14 | `synthesizer`, fixed final structures (3 workflow types), G0 for the final plan | 4 | done | Live (session a3eb908f): `add-nodes` appended synthesizer + builder to the old run, synthesizer wrote a 15 020-char plan in ~4.8 min, G0 PASS, plan presented; 4 checker tests |
+| 15 | `scripts/approve.mjs`, `/garage-approve`, `/garage-reject`, revision loop (Phase 5b), `request-approval`/`record-decision` | 4 | done | Live (a3eb908f): `/garage-reject` → feedback recorded, only the affected nodes re-ran (round 1); `/garage-approve` → approved (round 2); provenance check allowed both commands; 14 approval/hook tests |
+| 16 | `garage-html-theme` skill, `final-output-builder`, deterministic `render-html.mjs` | 4 | done | Live: builder ran after approval, `check-artifact` PASS on the HTML (10 sections, 2 tables, 22 links, no scripts, no internal names) |
+| 17 | Memory write-back after approval (Phase 7, `writeback`) | 4 | done | Live: `upsert_project` with `run_id` passed `memory-write-guard`; run `completed`. Defect found: it created a second project instead of updating the seeded one (fixed in Phase 7, smoke-tested) |
 | 18 | Demo runs 1–3 committed under `workflows/` | 5 | todo | |
 | 19 | Final `CLAUDE.md`, `README.md` complete | 5 | todo | |
 | 20 | Clean-checkout test | 5 | todo | |
@@ -82,6 +84,33 @@ Plan and design: `docs/garage-copilot-design.md` (sections 18 and 19). Deadline:
   more than a handful of places change, one full `Write` is cheaper. Carry-over for the synthesizer: the
   budget is a range (about 1174 PLN without adhesive, up to ~1811 PLN with it) because the adhesive class
   is unconfirmed; the validator noted that some tool entries must be dropped from the final plan.
+- Design deviations (Day 4): the HTML guide is rendered by a deterministic script (`render-html.mjs`), the
+  `final-output-builder` agent only runs it and checks the result; `approval-gate-guard` blocks the model from
+  running `approve.mjs` and `render-html.mjs` before approval. Risk: if the harness routes the `!` substitution
+  of `/garage-approve` through PreToolUse, the guard would block the master's own command — verify first.
+  The final plan is checked by G0 for fixed sections per workflow type and for internal names.
+- **Finding (live, a3eb908f):** in the VS Code environment the `!` shell substitution of a slash command is
+  *not* executed by the harness: the transcript entry carries `promptShellHandOff` and the expanded prompt says
+  «run this first: …», so the assistant ran the script itself and `approval-gate-guard` blocked it. Also `$1`
+  was the first word of the feedback because the run id was optional. Fix: no `!` substitution; the command
+  tells the assistant to run `scripts/approve.mjs` with Bash; the hook allows exactly that call only when the
+  last human-typed message (`origin.kind = human` in the transcript, which the assistant cannot write) is the
+  matching `/garage-approve` or `/garage-reject`; `approve.mjs` ignores a first argument that is not a run id.
+  Consequence: approval is verified by transcript provenance + plan hash, not by "harness runs the script".
+- Agents were dispatched in the background even though the coordinator passed `"false"`; completion arrives
+  by notification and the `running` guard prevents duplicates. Prompt now asks for a boolean.
+- Revision rule added: a new fact about owned items is written to the inventory (no `run_id`) before the
+  affected nodes are invalidated.
+- Round 5 findings (live, revision after the master's adhesive choice, 28 machine-minutes): (1) a size
+  overshoot of 3–4 % cost whole retry rounds and burned the last retry of a node → target + 15 % tolerance
+  (`artifact_hard_factor`), overshoot passes with a note; (2) `retries` carried over between rounds → a master
+  revision (`invalidate`) now resets the budget of the nodes it touches; (3) the validator wrote "G1 Источники"
+  in the gate column and failed G0 → ids with names accepted; (4) changing the adhesive changed consumption,
+  so the validator failed the plan's quantities (G4) and re-ran planner → products ×2 → cost → validator
+  (~9 min): quantity depends on the chosen product's consumption rate; (5) the project was inserted instead of
+  updating the seeded idea project (fixed).
+- Product research default is now three parallel nodes (materials, tools, ppe) to avoid retry rounds for
+  unpriced items (round 4 finding); `_superseded-*` artifacts are git-ignored; first commit made.
 - Expected full-cycle duration is ~35 min per run; reduction deferred until after the MVP is complete.
 - Resume (`/garage resume`) works through `state.mjs verify` + the normal execution loop; hooks (step 12) will
   call `artifact-written` automatically. Until then the coordinator calls it after each subagent.

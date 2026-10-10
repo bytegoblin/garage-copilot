@@ -140,6 +140,16 @@ function failNode(state, node, reason) {
   return `${node.id}: retry ${node.retries}/${state.config.max_retries}; downstream marked stale: ${reset.join(', ') || 'none'}`;
 }
 
+// A dependency is usable when it is validated and, for the independent validator, when its domain-gate
+// verdict for exactly this report has been applied and was PASS.
+function depUsable(state, dep) {
+  if (dep.status !== 'validated') return false;
+  if (dep.agent === 'evidence-validator') {
+    return state.domain_gates.result === 'pass' && state.domain_gates.processed_sha256 === dep.artifact_sha256;
+  }
+  return true;
+}
+
 function usage() {
   return `commands: ${Object.keys(commands).join(', ')}`;
 }
@@ -347,7 +357,7 @@ const commands = {
     const byId = new Map(s.plan.nodes.map((n) => [n.id, n]));
     const lines = [];
     for (const n of s.plan.nodes) {
-      const depsOk = n.depends_on.every((d) => byId.get(d).status === 'validated');
+      const depsOk = n.depends_on.every((d) => depUsable(s, byId.get(d)));
       const gateOk = n.gate !== 'approval' || s.approval.status === 'approved';
       if (n.status === 'created') lines.push(['stage-gate', n.id, n.agent, n.artifact].join('\t'));
       else if (n.status === 'running') lines.push(['running', n.id, n.agent, n.artifact].join('\t'));
@@ -431,8 +441,8 @@ const commands = {
     if (fileHash(abs) !== vnode.artifact_sha256) die(`${vnode.artifact} changed after validation`);
     const rows = readFileSync(abs, 'utf8').split('\n').filter((l) => l.trim().startsWith('|'))
       .map((l) => l.split('|').slice(1, -1).map((c) => c.trim()))
-      .filter((c) => c.length >= 6 && /^G[1-7]$/.test(c[0]))
-      .map(([gate, status, artifact, node, finding, fix]) => ({ gate, status, artifact, node, finding, fix }));
+      .filter((c) => c.length >= 6 && /^G[1-7]\b/.test(c[0]))
+      .map(([gate, status, artifact, node, finding, fix]) => ({ gate: gate.match(/^G[1-7]/)[0], status, artifact, node, finding, fix }));
     const have = new Set(rows.map((r) => r.gate));
     for (const g of ['G1', 'G2', 'G3', 'G4', 'G5', 'G6', 'G7']) if (!have.has(g)) die(`gate ${g} has no row`);
 
@@ -471,7 +481,7 @@ const commands = {
     const node = getNode(s, nodeId);
     const byId = new Map(s.plan.nodes.map((n) => [n.id, n]));
     if (!['pending', 'stale', 'running'].includes(node.status)) die(`${nodeId} cannot start from status ${node.status}`);
-    const notReady = node.depends_on.filter((d) => byId.get(d).status !== 'validated');
+    const notReady = node.depends_on.filter((d) => !depUsable(s, byId.get(d)));
     if (notReady.length) die(`${nodeId} has unvalidated dependencies: ${notReady.join(', ')}`);
     if (node.gate === 'approval' && s.approval.status !== 'approved') die(`${nodeId} requires approval`);
     node.status = 'running';
@@ -542,6 +552,7 @@ const commands = {
       node.status = 'validated';
       node.stage_gate = { result: 'pass', at: now() };
       node.last_error = null;
+      if (node.agent === 'final-output-builder') s.final_output = { status: 'done', path: node.artifact };
       saveState(s);
       console.log(`${nodeId}: validated`);
       return;
@@ -571,11 +582,13 @@ const commands = {
     const reasonIdx = rest.indexOf('--reason');
     const reason = reasonIdx >= 0 ? rest.slice(reasonIdx + 1).join(' ') : 'invalidated';
     markStale(node, reason);
+    node.retries = 0; // a revision requested by the master is a new round: the node gets a fresh retry budget
     const touched = [node.id];
     if (cascade) {
       for (const d of dependentsOf(s, node.id)) {
         if (d.status !== 'pending') {
           markStale(d, `upstream ${node.id} invalidated`);
+          d.retries = 0;
           touched.push(d.id);
         }
       }
@@ -583,6 +596,60 @@ const commands = {
     if (s.status === 'blocked' || s.status === 'completed') s.status = 'executing';
     saveState(s);
     console.log(`${runId}: stale -> ${touched.join(', ')}`);
+  },
+
+  // request-approval <run-id> -> the final plan is validated and shown to the master; records exactly which
+  // version was presented (its hash). Approval later must match it.
+  'request-approval'([runId]) {
+    const s = loadState(runId);
+    const synth = s.plan.nodes.find((n) => n.agent === 'synthesizer');
+    if (!synth) die('plan has no synthesizer node');
+    if (synth.status !== 'validated') die(`${synth.id} is ${synth.status}, expected validated`);
+    const abs = join(runDir(runId), synth.artifact);
+    const hash = fileHash(abs);
+    if (hash !== synth.artifact_sha256) die(`${synth.artifact} changed after validation`);
+    s.approval.status = 'awaiting_approval';
+    s.approval.round += 1;
+    s.approval.pending_sha256 = hash;
+    s.status = 'awaiting_approval';
+    saveState(s);
+    console.log(`${runId}: awaiting approval (round ${s.approval.round}, plan ${hash.slice(0, 8)})`);
+  },
+
+  // record-decision <run-id> approved|rejected <plan-sha256> -> called by scripts/approve.mjs only.
+  // Refuses unless the plan the master decided on is the plan that was presented.
+  'record-decision'([runId, decision, hash]) {
+    if (!['approved', 'rejected'].includes(decision)) die('decision must be approved or rejected');
+    const s = loadState(runId);
+    if (s.approval.status !== 'awaiting_approval') die(`run is not awaiting approval (status: ${s.approval.status})`);
+    if (!hash || hash !== s.approval.pending_sha256) die('the plan changed after it was presented; a new approval round is required');
+    s.approval.status = decision;
+    s.approval.history.push({ round: s.approval.round, decision, at: now(), final_plan_sha256: hash, feedback: null });
+    s.status = decision === 'approved' ? 'approved' : 'revision_requested';
+    saveState(s);
+    console.log(`${runId}: ${decision} (round ${s.approval.round})`);
+  },
+
+  // set-feedback <run-id> <feedback-file> -> stores the master's rejection reason with the last decision
+  'set-feedback'([runId, file]) {
+    const s = loadState(runId);
+    const last = s.approval.history[s.approval.history.length - 1];
+    if (!last || last.decision !== 'rejected') die('there is no rejection to attach feedback to');
+    const abs = resolve(file || '');
+    if (!file || !existsSync(abs)) die(`feedback file not found: ${file}`);
+    last.feedback = readFileSync(abs, 'utf8').trim();
+    saveState(s);
+    console.log(`${runId}: feedback recorded for round ${last.round}`);
+  },
+
+  // writeback <run-id> done|skipped -> memory write-back after approval
+  writeback([runId, result]) {
+    if (!['done', 'skipped'].includes(result)) die('result must be done or skipped');
+    const s = loadState(runId);
+    if (s.approval.status !== 'approved') die('memory is written back only after approval');
+    s.memory_writeback = { status: result, at: now() };
+    saveState(s);
+    console.log(`${runId}: memory write-back ${result}`);
   },
 
   // unblock <run-id> <node-id> -> resets a blocked node and its skipped dependents after the cause is fixed

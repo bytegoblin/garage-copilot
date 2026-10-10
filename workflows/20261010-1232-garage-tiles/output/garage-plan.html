@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>План проекта</title>
+<style>
+:root {
+  --bg: #f6f4ef; --surface: #ffffff; --text: #22201c; --muted: #6b665c; --accent: #b4540a;
+  --border: #ddd6c8; --head: #efe9dc; --quote: #fbf3e2;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #17150f; --surface: #211e17; --text: #ece6d8; --muted: #a39b8a; --accent: #e08a3c;
+    --border: #3a352a; --head: #2c2820; --quote: #2a2418;
+  }
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--text);
+  font: 16px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+.wrap { max-width: 860px; margin: 0 auto; padding: 24px 16px 64px; }
+header h1 { font-size: 1.9rem; line-height: 1.25; margin: 0 0 4px; }
+header p { margin: 0; color: var(--muted); }
+nav { margin: 20px 0 8px; padding: 12px 16px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; }
+nav ol { margin: 0; padding-left: 20px; columns: 2; column-gap: 24px; }
+nav a { color: var(--accent); text-decoration: none; }
+section { margin-top: 20px; padding: 16px 18px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; }
+h2 { font-size: 1.25rem; margin: 0 0 10px; padding-bottom: 6px; border-bottom: 2px solid var(--accent); }
+h3 { font-size: 1.05rem; margin: 16px 0 6px; }
+p { margin: 8px 0; }
+ul, ol { padding-left: 22px; }
+li { margin: 4px 0; }
+ul.checklist { list-style: none; padding-left: 4px; }
+a { color: var(--accent); overflow-wrap: anywhere; }
+code { background: var(--head); padding: 1px 5px; border-radius: 4px; font-size: .92em; }
+blockquote { margin: 10px 0; padding: 8px 14px; background: var(--quote); border-left: 4px solid var(--accent); border-radius: 4px; }
+.table-wrap { overflow-x: auto; margin: 10px 0; }
+table { border-collapse: collapse; width: 100%; font-size: .93rem; }
+th, td { border: 1px solid var(--border); padding: 6px 9px; text-align: left; vertical-align: top; }
+th { background: var(--head); }
+footer { margin-top: 28px; color: var(--muted); font-size: .88rem; text-align: center; }
+@media (max-width: 560px) { nav ol { columns: 1; } header h1 { font-size: 1.5rem; } }
+@media print {
+  body { background: #fff; color: #000; }
+  section, nav { border-color: #bbb; box-shadow: none; break-inside: avoid-page; }
+  a { color: #000; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+<h1>План проекта</h1>
+<p>Составлено твоим помощником по мастерской</p>
+</header>
+<nav aria-label="Содержание">
+<ol>
+<li><a href="#s1">Кратко</a></li>
+<li><a href="#s2">Что мы учли</a></li>
+<li><a href="#s3">План работ по этапам</a></li>
+<li><a href="#s4">Что у тебя уже есть</a></li>
+<li><a href="#s5">Список покупок</a></li>
+<li><a href="#s6">Бюджет и сравнение с готовым решением</a></li>
+<li><a href="#s7">Безопасность</a></li>
+<li><a href="#s8">Риски и неопределённости</a></li>
+<li><a href="#s9">Что я запишу в твою базу после одобрения</a></li>
+<li><a href="#s10">Источники</a></li>
+</ol>
+</nav>
+<main>
+<section id="s1">
+<h2>Кратко</h2>
+<p>Marek, плитку 60x60 с системой выравнивания (СВП) уложить реально, но только в тёплом окне и без запаса. От осмотра основания до заезда автомобиля 18–19 суток при воздухе и поле не ниже +5 °C, поэтому осмотр надо начать не позже 12.10 (11.10, если грунтовать накануне укладки). Если прогноз, в том числе ночной, не держит +5 °C, переносим на весну: обогрева нет.</p>
+<p>Клей Mapei Keraflex Extra S1, как ты решил. С полным объёмом клея (6 мешков) на недостающее уйдёт 1677,78 PLN, с резервом 10 % 1845,56 (76,90 PLN/м²). Остатки клея не вычтены: каждый мешок 25 кг у тебя снижает покупку на 65,98 PLN. Нижняя граница с резервом 1509,02. Сверху позиции без цены.</p>
+<p>Решить тебе: идти ли в осеннее окно по прогнозу и сколько клея у тебя осталось.</p>
+</section>
+<section id="s2">
+<h2>Что мы учли</h2>
+<ul>
+<li>Пол: старый бетон, 24 м², пылит, мелкие трещины, перепады в пределах нескольких мм на 2 м, влаги и трапа нет. Гараж отдельный, неотапливаемый.</li>
+<li>Плитка есть: 28 м² керамогранита 60x60, R10, ректифицированного. С подрезкой 15 % нужно 27,6 м².</li>
+<li>СВП твоё требование, но неровное основание она не исправляет.</li>
+<li>Нагрузка от легкового автомобиля, зимой вода и реагенты, замерзание. Отвод воды в работы не входит.</li>
+<li>Клей Mapei Keraflex Extra S1, остатки есть. Один человек, одна линия 16 А. Цены в PLN.</li>
+</ul>
+</section>
+<section id="s3">
+<h2>План работ по этапам</h2>
+<div class="table-wrap"><table>
+<thead><tr><th>№</th><th>Этап</th><th>Что делаем</th><th>Срок</th><th>Условие / пауза</th></tr></thead>
+<tbody>
+<tr><td>1</td><td>Решение и закупка</td><td>Прогноз с ночными минимумами, замер пола, закупка. Толщину плитки выписать с упаковки (клипсы Vorel на 7–14 мм)</td><td>1–2 дня</td><td>Прогноз ≥ +5 °C на 18–19 суток, иначе этап 10. Этап 2 не позже 12.10. Проверка перед этапами 4, 6, 8</td></tr>
+<tr><td>2</td><td>Осмотр основания</td><td>Трещины (до 2–3 мм закроет компенсационная мата, шире ремонт), ровность рейкой 2 м (допуск 2 мм), швы плиты, сухость, размеры</td><td>0,5 дня</td><td>Результат задаёт объём этапа 3</td></tr>
+<tr><td>3</td><td>Подготовка</td><td>Обеспылить пылесосом M/H, проверить царапаньем и простукиванием, слабое скалывать, убрать молочко, ремонт трещин. Выравнивающая масса где больше 2 мм на 2 м</td><td>1–2 дня</td><td>Сушка по карте материала (в источниках нет)</td></tr>
+<tr><td>4</td><td>Грунтование</td><td>Грунт CT 17, 2 слоя без лишнего разбавления. На гладких местах адгезионный</td><td>0,5 дня</td><td>Сушка около 2 ч при нормальной температуре, при +5 °C дольше.</td></tr>
+<tr><td>5</td><td>Раскладка</td><td>Сухая раскладка от входа и ворот без узких подрезок. Швы плитки по швам основания, пристенный зазор от 5 мм, промежуточный шов при стороне больше 6 м</td><td>0,5 дня, в паузу этапа 4</td><td>—</td></tr>
+<tr><td>6</td><td>Укладка с СВП</td><td>Пробные 2–3 плитки: проверить заполнение клеем. Клипсы в 4–8 см от угла, клинья затянуть клещами. Рейка 2 м и уровень 120 см по ходу</td><td>2 дня (оценка, около 12 м² в день)</td><td>Перед каждым замесом воздух и пол ≥ +5 °C. Keraflex: +5…+40 °C, жизнеспособность до 8 ч, открытое время от 30 мин</td></tr>
+<tr><td>7</td><td>Снятие клиньев</td><td>Не раньше 24 ч, при +5 °C дольше. Сбоку резиновым молотком, в очках</td><td>1 день плюс ожидание</td><td>Ниже +5 °C не снимать и не затирать</td></tr>
+<tr><td>8</td><td>Затирка и швы</td><td>Эластичная цементная затирка не раньше 48 ч после укладки (источники дают 16, 24 и 48 ч, берём длинное). У стен и на деформационных швах шнур из ПУ-пены и герметик</td><td>1 день</td><td>≥ +5 °C. Эпоксидная только от +10 °C</td></tr>
+<tr><td>9</td><td>Выдержка</td><td>Пешком через 48 ч после укладки, автомобиль не раньше 14 суток после укладки (полная нагрузка по Mapei)</td><td>около 11 суток после затирки</td><td>≥ +5 °C весь срок, при похолодании продлить</td></tr>
+<tr><td>10</td><td>Весна (запасной)</td><td>Закупка, замер основания, выбор затирки (эпоксидная возможна), проверка влаги после зимы</td><td>по необходимости</td><td>Возврат к этапу 2 при прогнозе ≥ +5 °C (≥ +10 °C для эпоксидной) на 18–19 суток</td></tr>
+</tbody>
+</table></div>
+<p><strong>Сроки.</strong> Этапы 2–6 занимают 4–5 суток, плюс 14 до заезда. Закупка 1–2 суток с 10.10: впритык. Старт после 12.10: этап 10.</p>
+<h3>«Делаем» или «откладываем»</h3>
+<ul>
+<li><strong>Температура.</strong> Воздух и пол ≥ +5 °C и ночной прогноз тоже; перепроверяем перед грунтом, укладкой и затиркой. Упало ниже: клинья не снимаем, не затираем, ждём тепла или этап 10.</li>
+<li><strong>Прочность.</strong> Порога в МПа в источниках нет. Царапаем и простукиваем всю площадь: борозды выцарапываются с трудом и звук звонкий, значит да. Иначе скалываем до здорового бетона и проверяем после грунта. Если большая площадь всё ещё крошится, не клеим: спрашиваем производителя клея или заказываем испытание на отрыв (цена и срок не найдены).</li>
+<li><strong>Чистота и сухость.</strong> Нет пыли, молочка, краски, жира. Плёнка около 1 м² на ночь в трёх местах: сухо и бетон не потемнел, значит да. Иначе не клеить и искать причину; чем гидроизолировать плиту, источники не говорят.</li>
+</ul>
+</section>
+<section id="s4">
+<h2>Что у тебя уже есть</h2>
+<ul>
+<li>Плитка 28 м², крестики 3 мм (около 74 шт., только для пристенного зазора), шпатель зуб 10 мм (покрытие на 60x60 проверь на пробных плитках), уровень 120 см (рейку 2 м докупаем).</li>
+<li>Остатки Keraflex: количество неизвестно. Проверь дату на мешке (хранение 12 месяцев) и цвет: Mapei в Польше только серый.</li>
+<li>Makita DDF484: нужна насадка с круглым или шестигранным хвостовиком, SDS-мешалка в патрон 13 мм не встанет. Потянет ли 18 В замес на мешок 25 кг, проверь на малом замесе, иначе сетевой миксер.</li>
+<li>Пила HS7601 не годится: допустимость алмазного диска не проверена. Шлифмашина GEX 125 для бетона не годится.</li>
+<li>Пылесос: по профилю есть, класс неизвестен; класс L не годится.</li>
+</ul>
+</section>
+<section id="s5">
+<h2>Список покупок</h2>
+<p>Цены на 2026-10-10. Клей и грунт на полный объём, это верхняя граница.</p>
+<div class="table-wrap"><table>
+<thead><tr><th>Позиция</th><th>Кол-во</th><th>Магазин и цена, PLN</th><th>Средняя, PLN</th><th>Ссылка</th></tr></thead>
+<tbody>
+<tr><td>Клей Mapei Keraflex Extra S1 серый 25 кг (до 6, минус остатки)</td><td>6</td><td>lazienki.eco 57,64 / Allegro 69,29 / maxlazienki.pl 71,00</td><td>65,98</td><td><a href="https://www.ceneo.pl/27229108">https://www.ceneo.pl/27229108</a></td></tr>
+<tr><td>Грунт Ceresit CT 17, 20 л</td><td>1</td><td>Castorama 188,00</td><td>188,00</td><td><a href="https://www.castorama.pl/grunt-gleboko-penetrujacy-ceresit-ct17-20-l/9000101134766_CAPL.prd">https://www.castorama.pl/grunt-gleboko-penetrujacy-ceresit-ct17-20-l/9000101134766_CAPL.prd</a></td></tr>
+<tr><td>Грунт Ceresit CT 17, 10 л</td><td>1</td><td>Castorama 108,00</td><td>108,00</td><td><a href="https://www.castorama.pl/grunt-gleboko-penetrujacy-ceresit-ct-17-10-l/5900089617081_CAPL.prd">https://www.castorama.pl/grunt-gleboko-penetrujacy-ceresit-ct-17-10-l/5900089617081_CAPL.prd</a></td></tr>
+<tr><td>Затирка Ceresit CE 40 Aquastatic, 2 кг</td><td>2</td><td>Castorama 41,98</td><td>41,98</td><td><a href="https://www.castorama.pl/fuga-elastyczna-ceresit-ce-40-aquastatic-szara-2-kg/5900089140039_CAPL.prd">https://www.castorama.pl/fuga-elastyczna-ceresit-ce-40-aquastatic-szara-2-kg/5900089140039_CAPL.prd</a></td></tr>
+<tr><td>СВП Vorel 04723, клещи в комплекте (ориентировочно)</td><td>1</td><td>MB Mega 197,00</td><td>197,00</td><td><a href="https://mb.mysky-shop.pl/VOREL-Leveling-system-1-5mm-700-200-pliers-p665423/s_lang/en">https://mb.mysky-shop.pl/VOREL-Leveling-system-1-5mm-700-200-pliers-p665423/s_lang/en</a></td></tr>
+<tr><td>Плиткорез Walmer MGM 800 (ориентировочно)</td><td>1</td><td>e-katalog.pl 261,00–276,00</td><td>268,50</td><td><a href="https://e-katalog.pl/ua/list/676/walmer/">https://e-katalog.pl/ua/list/676/walmer/</a></td></tr>
+<tr><td>Болгарка Graphite 900 Вт, 125 мм (ориентировочно)</td><td>1</td><td>OBI 148,99</td><td>148,99</td><td><a href="https://www.obi.pl/szlifierki/graphite-szlifierka-katowa-900w-125-mm/p/7372402">https://www.obi.pl/szlifierki/graphite-szlifierka-katowa-900w-125-mm/p/7372402</a></td></tr>
+<tr><td>Алмазный диск Schmith 125 мм (ориентировочно)</td><td>1</td><td>Leroy Merlin 89,99</td><td>89,99</td><td><a href="https://www.leroymerlin.pl/produkty/tarcza-diamentowa-do-ciecia-i-szlifowania-uniwersalna-125-mm-schmith-91568893.html">https://www.leroymerlin.pl/produkty/tarcza-diamentowa-do-ciecia-i-szlifowania-uniwersalna-125-mm-schmith-91568893.html</a></td></tr>
+<tr><td>Резиновый молоток Magnusson 453 г</td><td>1</td><td>Castorama 29,98</td><td>29,98</td><td><a href="https://www.castorama.pl/mlotek-gumowy-magnusson-453-g-czarny/3663602817994_CAPL.prd">https://www.castorama.pl/mlotek-gumowy-magnusson-453-g-czarny/3663602817994_CAPL.prd</a></td></tr>
+<tr><td>Рейка 2 м Hardy (ориентировочно)</td><td>1</td><td>Leroy Merlin 145,00</td><td>145,00</td><td><a href="https://www.leroymerlin.pl/produkty/lata-trapezowa-2000-mm-hardy-45392242.html">https://www.leroymerlin.pl/produkty/lata-trapezowa-2000-mm-hardy-45392242.html</a></td></tr>
+<tr><td>Очки закрытые, два варианта</td><td>1</td><td>Castorama 14,98 / 29,98</td><td>22,48</td><td><a href="https://www.castorama.pl/bezpieczenstwo-i-bhp/odziez-ochronna-i-bhp/sprzet-ochrony-osobistej/okulary-ochronne.cat">https://www.castorama.pl/bezpieczenstwo-i-bhp/odziez-ochronna-i-bhp/sprzet-ochrony-osobistej/okulary-ochronne.cat</a></td></tr>
+</tbody>
+</table></div>
+<p><strong>Клей.</strong> Нужно 55,2–138 кг (27,6 м² × 2–5 кг/м² по Mapei), то есть 3–6 мешков. Покупка от 0 до 6 мешков. Каждые 25 кг остатков это минус мешок, 65,98 PLN. Цены со страницы сравнения цен, магазины не открывались: подтверди в магазине.</p>
+<p><strong>Грунт.</strong> 26,4 л (2 м²/л на слой) это 20 + 10 л, 296,00 PLN. Если 2 м²/л покрывает оба слоя, хватит 13,2 л: одной канистры 20 л за 188,00. У производителя не найдено.</p>
+<p><strong>СВП.</strong> В Vorel 700 клипсов (нужно около 300) и 200 клиньев (по плану 300 одноразовых), клещи внутри. Цена из выдачи поиска, страница не открылась.</p>
+<p><strong>Без цены</strong> (в итог не входят): шнур из ПУ-пены 25 м, герметик 3 картриджа по 300 мл, респиратор, наушники, наколенники, перчатки, термометр, плёнка 4 м² и лента, пылесос M/H (если твой не подходит), мешалка или миксер, ремонтные смеси, выравнивающая масса, компенсационная мата (количество не рассчитано), адгезионный грунт, расходка (кисти, валик, вёдра, шпатели, губки, пистолет для герметика, зубило), аренда плиткореза и шлифмашины по бетону. Сумма может заметно вырасти.</p>
+</section>
+<section id="s6">
+<h2>Бюджет и сравнение с готовым решением</h2>
+<p>Бюджет ты не задавал.</p>
+<ul>
+<li>База (клей 6 мешков, грунт 27 л): материалы 972,84 PLN (клей 395,88, грунт 296,00, затирка 83,96, СВП 197,00), инструмент и СИЗ 704,94 (около 42 %). Итого 1677,78, резерв 10 % 167,78, всего 1845,56 PLN, 76,90 PLN/м².</li>
+<li>Низ (клей 3 мешка, грунт 13,2 л): 1371,84, резерв 137,18, всего 1509,02 PLN, 62,88 PLN/м². Смешанные случаи до резерва: 6 мешков и 13,2 л 1569,78, 3 мешка и 27 л 1479,84.</li>
+<li>Резерв не покрывает позиции без цены. Сверху возможный второй комплект СВП 197,00 PLN.</li>
+<li>Готовое решение: цену укладки под ключ во Вроцлаве не нашли, сравнить нельзя. Ориентир для мастеров: 76,90 PLN/м² (база), 62,88 (низ), без твоего труда. Цену проси без плитки.</li>
+<li>Болгарка: купить 238,98 PLN или арендовать 230 мм за 93,30 PLN/сутки: на 2 суток 186,60 (дешевле на 52,38), на 3 суток 279,90 (дороже на 40,92). Диск и залог не найдены; диск 125 мм к 230 мм не подходит, с диском 89,99 аренда 276,59, дороже покупки на 37,61. Заложена покупка.</li>
+<li>Плиткорез: цены аренды нет, с покупкой (268,50 PLN) не сравнить.</li>
+</ul>
+</section>
+<section id="s7">
+<h2>Безопасность</h2>
+<p>В порядке работы:</p>
+<ol>
+<li><strong>Подготовка основания.</strong> В пыли бетона кристаллический кремнезём (норматив в Польше 0,1 мг/м³, для тебя ориентир). Пылесос класса M, лучше H. Респиратор FFP2 минимум, FFP3 лучше (класс страницей не подтверждён). Закрытые очки, наушники, ворота открыты. Пыль не сдувать.</li>
+<li><strong>Резка.</strong> Плиткорез по возможности, болгарка только с отсосом, в очках, респираторе и наушниках. Сухая резка керамогранита без отсоса недопустима. Диск сверь по оборотам с болгаркой (3000–12000 об/мин): кожух и отдача в источниках не разобраны.</li>
+<li><strong>Электрика.</strong> 230 × 16 = 3680 Вт. Одновременно одна мощная машина плюс пылесос и свет, миксер и пилу или шлифмашину не вместе. Мощность миксера и пылесоса неизвестна, суммируй по табличкам. Удлинитель размотан полностью, мокрую резку через УЗО.</li>
+<li><strong>Перенос и работа на полу.</strong> Вес плитки не найден: носи по одной на ребре двумя руками. Мешки клея по 25 кг тоже по одному, помощника нет. Наколенники и перчатки.</li>
+<li><strong>Клей и затирка.</strong> Перчатки и очки, пыль при высыпании не вдыхать. Цементные смеси раздражают кожу и дыхание, опасны для глаз (карты не открывались, смотри упаковку). Попало в глаза: промыть водой.</li>
+<li><strong>Снятие клиньев.</strong> Очки, бить сбоку, не стоять над клином.</li>
+<li><strong>Эпоксидная затирка (весной).</strong> [иностранный источник] Перчатки и очки, смола сенсибилизирует кожу. Вентиляция обязательна, при слабой респиратор от органических паров. Отверждение дольше двух недель, в холодном гараже ещё дольше.</li>
+</ol>
+</section>
+<section id="s8">
+<h2>Риски и неопределённости</h2>
+<ul>
+<li><strong>Времена при +5 °C</strong> (снятие клиньев, затирка, нагрузка) не найдены: взяты значения при нормальной температуре (24 ч, 48 ч, 14 суток).</li>
+<li><strong>Шов СВП 1,5 мм</strong> против совета не менее 5 мм при морозе. План следует твоему выбору, смягчение: эластичная затирка и пристенные швы от 5 мм. Риск трещин остаётся, стойкость затирок к морозу и солям не заявлена.</li>
+<li><strong>Keraflex Extra S1.</strong> На странице Mapei мороз не заявлен, только «внутри и снаружи»; морозостойкость из фрагмента поиска технической карты, сам документ не открывался. Пригодность под автомобиль и клипсы в шве под колёсами подтверди у производителя. Расход 2–5 кг/м² не привязан к зубу 10 мм и плитке 60x60.</li>
+<li><strong>Основание.</strong> Порогов прочности и влаги для старой плиты нет, проверки перенесены со стяжек на бетон. Гидроизоляция плиты неизвестна. CT 17 для бетона не назван: закрывает проверка царапаньем после грунта.</li>
+<li><strong>Vorel 04723.</strong> Страница не открывается, цена и состав из фрагментов, валюта не указана (принят PLN). Клинья снимаются после схватывания, поэтому за 2 дня их повтор на второй день может не сработать: делить на захватки или брать второй комплект.</li>
+<li><strong>Допущения плана:</strong> запас на подрезку 15 %, мешок 25 кг, грунт 2 м²/л на слой, толщина плитки 10 мм, периметр 22 м, 12 м² в день.</li>
+<li><strong>Цены из выдачи поиска</strong> (клей, Leroy Merlin, OBI, e-katalog, MB Mega, очки): проверь перед покупкой.</li>
+<li><strong>Не найдено:</strong> покрытие клеем и зуб для 60x60, шаг деформационных швов, вес плитки, класс респиратора, цена услуги под ключ.</li>
+</ul>
+<h3>Что нужно решить тебе</h3>
+<ol>
+<li><strong>Окно или весна.</strong> Прогноз держит +5 °C на 18–19 суток и осмотр не позже 12.10: идём. Нет: этап 10, затирка может быть эпоксидной (от +10 °C).</li>
+<li><strong>Сколько клея докупать.</strong> Посчитай остатки в кг, проверь дату и цвет. Покупка от 0 до 6 мешков, до 395,88 PLN.</li>
+<li><strong>Болгарка.</strong> Купить (238,98 PLN, в итоге) или аренда на 2 суток (186,60 PLN, если диск входит).</li>
+<li><strong>Второй комплект СВП.</strong> +197,00 PLN сразу или по ходу, если клиньев не хватит.</li>
+</ol>
+</section>
+<section id="s9">
+<h2>Что я запишу в твою базу после одобрения</h2>
+<ul>
+<li>Проект: «Garage floor tiles», статус «запланирован», бюджет не задан, тип «project-plan».</li>
+<li>Инвентарь и покупки не записываю: они попадут в базу, когда ты скажешь, что купил.</li>
+<li>Остатки клея Keraflex не пишу: количество неизвестно.</li>
+</ul>
+</section>
+<section id="s10">
+<h2>Источники</h2>
+<p>Цены и параметры товаров: страницы по ссылкам в таблице покупок (2026-10-10). Цифры Mapei со страницы продукта [1].</p>
+<ol>
+<li>Mapei Polska, Keraflex Extra S1, страница продукта — <a href="https://www.mapei.com/pl/pl/produkty-i-rozwiazania/lista-produktow/informacje-o-produktach/keraflex-extra-s1">https://www.mapei.com/pl/pl/produkty-i-rozwiazania/lista-produktow/informacje-o-produktach/keraflex-extra-s1</a> (2026-10-10)</li>
+<li>Mapei Polska, karta techniczna Keraflex Extra S1, фрагмент поиска (мороз) — <a href="https://cdnmedia.mapei.com/docs/librariesprovider24/products-documents/1_kt-keraflex-extra-s1_na-www_c22a6ba1abaf46868d82e7351eb2748d.pdf?sfvrsn=ce526245_0">https://cdnmedia.mapei.com/docs/librariesprovider24/products-documents/1_kt-keraflex-extra-s1_na-www_c22a6ba1abaf46868d82e7351eb2748d.pdf?sfvrsn=ce526245_0</a> (2026-10-10)</li>
+<li>System poziomowania płytek (kb.pl) — <a href="https://kb.pl/porady/system-poziomowania-plytek-opis-zasada-dzialania-opinie-porady">https://kb.pl/porady/system-poziomowania-plytek-opis-zasada-dzialania-opinie-porady</a> (2026-10-10)</li>
+<li>Dylatacja posadzki (Muratordom) — <a href="https://muratordom.pl/wnetrza/prace-wykonczeniowe/dylatacja-posadzki-jak-zrobic-szczeliny-dylatacyjne-aa-v6co-rcUg-imyQ.html">https://muratordom.pl/wnetrza/prace-wykonczeniowe/dylatacja-posadzki-jak-zrobic-szczeliny-dylatacyjne-aa-v6co-rcUg-imyQ.html</a> (2026-10-10)</li>
+<li>Podłoże pod płytki wielkoformatowe (cenauslug.pl) — <a href="https://cenauslug.pl/poradniki/krok-po-kroku-jak-przygotowac-podloze-pod-plytki-wielkoformatowe-aby-uniknac-pekniec">https://cenauslug.pl/poradniki/krok-po-kroku-jak-przygotowac-podloze-pod-plytki-wielkoformatowe-aby-uniknac-pekniec</a> (2026-10-10)</li>
+<li>Jaki klej na płytki wielkoformatowe i jakie fugi? (Muratordom) — <a href="https://muratordom.pl/wnetrza/prace-wykonczeniowe/jaki-klej-na-plytki-wielkoformatowe-i-jakie-fugi-pomagamy-w-wyborze-aa-4qgQ-35vd-A7Yv.html">https://muratordom.pl/wnetrza/prace-wykonczeniowe/jaki-klej-na-plytki-wielkoformatowe-i-jakie-fugi-pomagamy-w-wyborze-aa-4qgQ-35vd-A7Yv.html</a> (2026-10-10)</li>
+<li>Podłoga w garażu (Muratordom), грунтование за день до укладки — <a href="https://muratordom.pl/budowa/garaz/posadzka-w-garazu-aa-3cay-aeAa-3ChS.html">https://muratordom.pl/budowa/garaz/posadzka-w-garazu-aa-3cay-aeAa-3ChS.html</a> (2026-10-10)</li>
+<li>Komunikat nr XII Komisji ds. NDS i NDN (PSSE Białystok) — <a href="https://www.gov.pl/web/psse-bialystok/komunikat-xii">https://www.gov.pl/web/psse-bialystok/komunikat-xii</a> (2026-10-10)</li>
+<li>Rodzaje pyłu (Bosch Professional) — <a href="https://www.bosch-professional.com/pl/pl/ochrona-przeciwpylowa/rodzaje-pylu/">https://www.bosch-professional.com/pl/pl/ochrona-przeciwpylowa/rodzaje-pylu/</a> (2026-10-10)</li>
+<li>[иностранный источник] General Epoxy Safety Guidelines (West System) — <a href="https://www.westsystem.com/safety/preventing-overexposure/">https://www.westsystem.com/safety/preventing-overexposure/</a> (2026-10-10); польского источника по эпоксидным смолам не найдено</li>
+<li>Cennik wypożyczalni sprzętu budowlanego, Wrocław (kb.pl) — <a href="https://kb.pl/cenniki/miejskie/wypozyczalnia-sprzetu-budowlanego/wroclaw/">https://kb.pl/cenniki/miejskie/wypozyczalnia-sprzetu-budowlanego/wroclaw/</a> (2026-10-10)</li>
+</ol>
+</section>
+</main>
+<footer>План одобрен 2026-10-10. Цены ориентировочные, смотри даты рядом с ними.</footer>
+</div>
+</body>
+</html>

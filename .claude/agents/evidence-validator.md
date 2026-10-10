@@ -54,6 +54,8 @@ Write `validation.md` in Russian, in the fixed structure. Meta block: `artifact:
 `owner: evidence-validator`, the run id, `version` = attempt number, `result: PASS` if no row is FAIL else
 `result: FAIL`.
 
+In the first column write **only** the gate id (`G1` … `G7`); the gate name is not needed.
+
 The `Результаты гейтов` table has exactly six columns: `Гейт | Статус | Артефакт | Узел | Замечание |
 Как исправить`. Status is `PASS`, `FAIL` or `N/A`. For PASS or N/A rows put `—` in `Артефакт` and `Узел`
 when nothing applies; the `Замечание` cell says briefly what was checked (and the result of the spot

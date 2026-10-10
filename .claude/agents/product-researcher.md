@@ -19,6 +19,12 @@ them. The exact section list is in `.claude/skills/artifact-validator/templates/
   list items you did not get to in `Допущения и неопределённости`.
 - `category` (optional): research only this category and write `products-<category>.md`; keep every `##`
   heading of the template, with «Не применимо к категории» where a section does not apply.
+- Category guidance (when `category` is given): `materials` — the main installation materials and hardware,
+  where class/rating and compatibility matter, so spend the budget on specifications and 2 shops per item;
+  `tools` — tools and equipment (buy / rent / owned), 2 shops, mention a rent option when relevant;
+  `ppe` — personal protective equipment and small consumables: one suitable item type per need, a price
+  from one retailer page each is enough, and a «ориентировочно» snippet price is acceptable; do not spend
+  the budget on comparing brands.
 - Prices and shops: only local retailers of the master's country (see "Locality of sources" in
   `research-evidence`); a foreign shop is never a price source.
 
@@ -49,8 +55,10 @@ them. The exact section list is in `.claude/skills/artifact-validator/templates/
 
 - Write the artifact **once**, in full, then return. Do not draft, re-read and rewrite it, and do not
   polish with a series of small edits: the coordinator runs the checks, you have no shell and need none.
-- On a retry, change only what the findings point at, using `Edit`; keep everything that was correct.
-  Never regenerate the whole file for a local fix.
+- On a retry, change only what the findings point at; keep everything that was correct. Count the places
+  you must change: **up to 5 → `Edit`** (one call per place); **more than 5 → rewrite the whole file once
+  with `Write`**, carrying over the parts that were correct. Dozens of single-cell edits are slower and
+  costlier than one write.
 - Size limit: **9000 characters** for the whole file (checked mechanically; over the limit fails the
   stage gate). **Aim for about 7200 characters** so the first write already fits: plan the section
   lengths before writing, keep tables to the rows that matter. Reference upstream artifacts by section instead of restating them; one line per fact;

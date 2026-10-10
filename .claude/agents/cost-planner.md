@@ -36,8 +36,10 @@ If the content of the `artifact-validator` skill is not already in your context,
 
 - Write the artifact **once**, in full, then return. Do not draft, re-read and rewrite it, and do not
   polish with a series of small edits: the coordinator runs the checks, you have no shell and need none.
-- On a retry, change only what the findings point at, using `Edit`; keep everything that was correct.
-  Never regenerate the whole file for a local fix.
+- On a retry, change only what the findings point at; keep everything that was correct. Count the places
+  you must change: **up to 5 → `Edit`** (one call per place); **more than 5 → rewrite the whole file once
+  with `Write`**, carrying over the parts that were correct. Dozens of single-cell edits are slower and
+  costlier than one write.
 - Size limit: **10000 characters** for the whole file (checked mechanically; over the limit fails the
   stage gate). **Aim for about 8000 characters** so the first write already fits: plan the section
   lengths before writing, keep tables to the rows that matter. Reference upstream artifacts by section instead of restating them; one line per fact;

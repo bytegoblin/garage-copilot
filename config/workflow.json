@@ -7,16 +7,24 @@
   },
   "run_id_pattern": "^[0-9]{8}-[0-9]{4}-[a-z0-9-]+$",
   "research_depth": {
-    "quick": { "max_searches": 6, "max_fetches": 8 },
-    "standard": { "max_searches": 12, "max_fetches": 15 }
+    "quick": {
+      "max_searches": 6,
+      "max_fetches": 8
+    },
+    "standard": {
+      "max_searches": 12,
+      "max_fetches": 15
+    }
   },
   "artifact_max_chars": {
     "research": 10000,
     "products": 9000,
     "project-plan": 14000,
     "budget": 10000,
-    "validation": 9000
+    "validation": 9000,
+    "final-plan": 16000
   },
+  "artifact_hard_factor": 1.15,
   "playbooks": {
     "tiling": "trade-tiling",
     "carpentry": "trade-carpentry"

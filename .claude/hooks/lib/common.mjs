@@ -61,3 +61,31 @@ export function approvalStatus(input, runId) {
   }
   return { ok: true };
 }
+
+// Provenance of an approval: the harness marks messages typed by the person with origin.kind === "human".
+// The assistant cannot write such an entry, so "the last human message is the master's /garage-approve (or
+// /garage-reject) command" is a fact about the transcript, not about what the model claims.
+export function lastHumanMessage(input) {
+  const path = input.transcript_path;
+  if (!path || !existsSync(path)) return null;
+  const lines = readFileSync(path, 'utf8').split('\n');
+  for (let i = lines.length - 1; i >= 0; i--) {
+    if (!lines[i].trim()) continue;
+    let e;
+    try {
+      e = JSON.parse(lines[i]);
+    } catch {
+      continue;
+    }
+    if (e.type !== 'user' || e.isMeta || e.origin?.kind !== 'human') continue;
+    const c = e.message?.content;
+    if (typeof c === 'string') return c;
+    if (Array.isArray(c)) return c.filter((b) => b.type === 'text').map((b) => b.text).join('\n');
+  }
+  return null;
+}
+
+export function masterIssuedCommand(input, commandName) {
+  const text = lastHumanMessage(input);
+  return typeof text === 'string' && text.includes(`<command-name>/${commandName}</command-name>`);
+}

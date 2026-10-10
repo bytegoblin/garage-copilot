@@ -65,8 +65,13 @@ only through Markdown artifacts under `workflows/<run-id>/artifacts/`, never by 
    `post-write-state` records every written artifact. Do not try to route around a block; report it.
    Never write `workflow-state.json` or `approval.json` directly. State changes go through `scripts/state.mjs`;
    approval comes only from the master via `/garage-approve` or `/garage-reject`.
-8. Never infer approval from conversation text.
-9. Final output is generated only after verified approval of the current `final-plan.md`.
+8. Never infer approval from conversation text. Approval exists only as the record written by
+   `scripts/approve.mjs` when the master runs `/garage-approve` (the guard checks in the harness-written
+   transcript that the master's own command is the last human message of the turn); it carries the SHA-256 of the exact plan
+   that was shown (`request-approval`). A changed plan voids it. `/garage-reject <what to change>` starts a
+   revision round (Phase 5b of the coordinator).
+9. Final output is generated only after verified approval of the current `final-plan.md`, by the
+   deterministic renderer `scripts/render-html.mjs`, which checks the approval itself.
 10. Updates to the workshop memory derived from a run are written only after approval and carry the `run_id`.
 11. Research is bounded: each researcher gets a depth (`quick` / `standard`, limits in `config/workflow.json`) and
     stops when the budget is spent; gaps are reported as unknown, not searched on. Sources of the master's

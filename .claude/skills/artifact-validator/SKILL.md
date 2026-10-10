@@ -61,7 +61,8 @@ What it verifies:
   a date `YYYY-MM-DD` (rows for items marked «уже есть» are exempt);
 - for `validation.md`: one table row set covering G1–G7, valid statuses, FAIL rows with finding + fix hint
   and an owner node that exists in the plan, and `meta.result` consistent with the table;
-- total size within the per-type character limit from `config/workflow.json` (`artifact_max_chars`);
+- total size within the per-type character target from `config/workflow.json` (`artifact_max_chars`);
+  a small overshoot (up to `artifact_hard_factor` × target, 1.15) passes with a `[note]`, a larger one fails;
 - no leftover placeholders (`TODO`, `TBD`, `<run-id>`, `YYYY-MM-DD`, lorem ipsum).
 
 ## Reporting findings

@@ -35,11 +35,15 @@ If `$ARGUMENTS` starts with `resume`:
    `node scripts/state.mjs summary <run-id>`.
 3. Tell the master in one or two sentences where the work stopped. Then continue at the right phase:
    requirements not confirmed → Phase 2 (continue from `qa-log.md`, do not repeat answered questions);
-   confirmed but plan empty → Phase 3; otherwise → Phase 4. Never re-run nodes that are `validated`.
-4. If the plan has no `evidence-validator` node (the run was planned before the validator existed), append
-   it instead of re-planning: write `workflows/<run-id>/extra.json` with that single node (depends on the
-   leaves) and run `node scripts/state.mjs add-nodes <run-id> workflows/<run-id>/extra.json`. Validated nodes
-   stay as they are.
+   confirmed but plan empty → Phase 3; run status `awaiting_approval` → re-present the plan (Phase 5 steps
+   2–4) **without** calling `request-approval` again; `revision_requested` → Phase 5b; `approved` →
+   Phase 6 if the output node is not validated yet, else Phase 7 if the write-back is not `done`;
+   otherwise → Phase 4. Never re-run nodes that are `validated`.
+4. If the plan lacks closing nodes (`evidence-validator`, `synthesizer`, `final-output-builder` — the run
+   was planned before they existed), append the missing ones instead of re-planning: write
+   `workflows/<run-id>/extra.json` with only the missing nodes (validator depends on the leaves, synthesizer on
+   the validator, builder on the synthesizer with `"gate": "approval"`) and run
+   `node scripts/state.mjs add-nodes <run-id> workflows/<run-id>/extra.json`. Validated nodes stay as they are.
 5. If the master asks to re-plan from the confirmed requirements (for example after the research rules
    changed), run `node scripts/state.mjs reset-plan <run-id>` (it keeps the requirements and moves old
    artifacts into a `_superseded-*` folder), then go to Phase 3.
@@ -72,9 +76,9 @@ Loop (at most 5 rounds):
 ## Phase 3 — Planning (dynamic agent selection)
 
 Read the confirmed `requirements.md` (workflow type, constraints, what is owned) and decide which nodes
-this task needs. There is no fixed pipeline. Agents implemented now: `diy-researcher`, `product-researcher`,
-`project-planner`, `cost-planner`, `evidence-validator`. (`synthesizer` and `final-output-builder` are not
-implemented yet: do not put them in the plan.)
+this task needs. There is no fixed pipeline: which of `diy-researcher`, `product-researcher`,
+`project-planner` and `cost-planner` run, and how they are split, depends on the task. The closing
+nodes below are always present.
 
 Settings (read once with `Read config/workflow.json`): `research_depth` (hard search/fetch limits per
 level) and `playbooks` (trade → playbook skill).
@@ -87,9 +91,9 @@ Selection rules:
 
 | Situation | Nodes |
 |---|---|
-| `project-plan` with a playbook | research split by the playbook's "Recommended research split": one `diy-researcher-<slug>` node per topic (artifact `artifacts/research-<slug>.md`), all in parallel, depth `quick` each; then `project-planner` depending on **all** of them → `product-researcher` → `cost-planner` |
-| `project-plan` without a playbook | single `diy-researcher` (depth `standard`) → `project-planner` → `product-researcher` → `cost-planner` |
-| `project-plan` where the missing items fall into clearly independent categories (e.g. boards vs hardware) | replace `product-researcher` by one node per category, in parallel: id `product-researcher-<slug>`, artifact `artifacts/products-<slug>.md`, depth `quick`; `cost-planner` depends on all of them |
+| `project-plan` with a playbook | research split by the playbook's "Recommended research split": one `diy-researcher-<slug>` node per topic (artifact `artifacts/research-<slug>.md`), all in parallel, depth `quick` each; then `project-planner` depending on **all** of them → product research (next row) → `cost-planner` |
+| `project-plan` without a playbook | single `diy-researcher` (depth `standard`) → `project-planner` → product research (next row) → `cost-planner` |
+| `project-plan`, product research (default) | **three parallel product nodes**, all depending on `project-planner`: `product-researcher-materials` (`artifacts/products-materials.md`; main materials and hardware), `product-researcher-tools` (`artifacts/products-tools.md`; tools and equipment), `product-researcher-ppe` (`artifacts/products-ppe.md`; protective equipment and small consumables), each depth `quick`; `cost-planner` depends on all three. Drop a category node only if the task clearly has nothing in it (e.g. no tools to buy because all are owned) |
 | `purchase-decision` | single `diy-researcher` (usage, compatibility, safety; depth `quick`) ∥ `product-researcher` (depth `standard`), both depend only on requirements, then `cost-planner` depending on both |
 | `how-to` | single `diy-researcher`, depth `quick`; add a `product-researcher` node (parallel, depth `quick`) only if the master asked for specific products |
 
@@ -97,9 +101,14 @@ Depth is a hard budget: the dispatch prompt carries the numbers from `config/wor
 `standard` node and a topic node (`quick`) have different budgets on purpose: split research is cheaper
 per node and runs in parallel.
 
-**Always** end the plan with one `evidence-validator` node (id `evidence-validator`, artifact
-`artifacts/validation.md`) that depends on every node that no other node depends on (the leaves). It is the
-independent check of everything before it.
+**Always** end the plan with these three nodes:
+
+1. `evidence-validator` (artifact `artifacts/validation.md`), depends on every node that no other node
+   depends on (the leaves). It is the independent check of everything before it.
+2. `synthesizer` (artifact `artifacts/final-plan.md`), depends on `evidence-validator`. It becomes
+   available only after the validator's domain gates passed; the state script enforces that.
+3. `final-output-builder` (artifact `output/garage-plan.html`, `"gate": "approval"`), depends on
+   `synthesizer`. It cannot start before the master approved the exact plan version.
 
 Write the plan to `workflows/<run-id>/plan.json`:
 
@@ -114,7 +123,8 @@ Write the plan to `workflows/<run-id>/plan.json`:
 ```
 
 A node with no `depends_on` depends only on the requirements. Artifact names: `research[-slug].md`,
-`products[-slug].md`, `project-plan.md`, `budget.md`. Remember the playbook name and the depth of each node;
+`products[-slug].md`, `project-plan.md`, `budget.md`. In `cost-planner`'s dispatch list **every**
+`products-*.md` of the run. Remember the playbook name and the depth of each node;
 they go into its dispatch prompt (Phase 4). Do not store them in `plan.json`. Then:
 
 1. `node scripts/state.mjs set-plan <run-id> workflows/<run-id>/plan.json`
@@ -141,8 +151,9 @@ Repeat until the last line of `ready` is not `# IN_PROGRESS`:
      invalidates the plan).
    - `dispatch <node> <agent> <artifact> attempt=<n> [last findings]`: dispatch it (below).
 2. Dispatch **all** `dispatch` actions of one `ready` call in the same message as parallel Agent calls,
-   in the **foreground** (`run_in_background: false`) so that you wait for all of them before the next
-   `ready`.
+   and wait for all of them before the next `ready`. Pass `run_in_background` as the boolean `false` (not
+   the string); whether the harness runs them in the foreground or reports completion by notification,
+   never call `ready` as if they were finished and never dispatch a node that `ready` shows as `running`.
    Before each, run `node scripts/state.mjs start <run-id> <node>`. The prompt to the subagent contains, in
    this order: run id and node id; workflow type; output path `workflows/<run-id>/artifacts/<file>`
    (and the `topic` or `category` slug for a split node); for researchers also the `depth` with the
@@ -153,7 +164,9 @@ Repeat until the last line of `ready` is not `# IN_PROGRESS`:
    to write Russian content in the fixed structure, to write only its own artifact and to reply with
    `DONE <path>` or `BLOCKED <reason>`. Never paste another agent's output into the prompt.
    For `evidence-validator` the prompt lists **all** validated artifacts and the table of plan nodes
-   (`node id → agent → artifact`), and the confirmed budget if any.
+   (`node id → agent → artifact`), and the confirmed budget if any. For `synthesizer` it lists all validated
+   artifacts and `validation.md`, the workflow type, and on a revision the master's feedback and the
+   previous plan.
    On a domain-gate retry the owner's findings are the `[G#] ... | fix: ...` text from `ready`; quote
    it. The owner then fixes those places only (with `Edit`), within its normal research budget.
 3. When a subagent replies `DONE <path>`: `node scripts/state.mjs artifact-written <path>`. When it replies
@@ -164,17 +177,79 @@ Repeat until the last line of `ready` is not `# IN_PROGRESS`:
 
 Terminal states of `ready`:
 
-- `# COMPLETE`: all planned nodes are validated → Phase 5.
+- `# WAITING_APPROVAL`: everything up to the final plan is validated and only the gated output node is
+  left → Phase 5 (present the plan and ask for the decision).
+- `# COMPLETE`: every node is validated, including the final output → Phase 7.
 - `# BLOCKED`: a node exhausted its retries. Stop. Explain to the master in plain Russian what failed,
   what was therefore not done, and what they can do (answer a question, relax a requirement, try later).
   Do not dispatch anything downstream.
 - `# IDLE` / anything else unexpected: run `node scripts/state.mjs summary <run-id>`, report honestly.
 
-## Phase 5 — End of the implemented part
+## Phase 5 — Presenting the plan for approval
 
-Stages after validation — synthesis into one plan, approval and the final HTML guide — are not
-implemented yet. When the plan is `COMPLETE`, tell the master in Russian, briefly: the research, work plan,
-products and budget are done and passed both the structural checks and the independent validation (say
-which retries happened, in plain words); the remaining stages are still being built. For this development period you may name the folder with the intermediate
-files (`workflows/<run-id>/artifacts/`) so the master can read them. Do not summarise domain content
-yourself and do not improvise a final plan.
+Reached when `ready` ends with `# WAITING_APPROVAL` (and again after every revision).
+
+1. `node scripts/state.mjs request-approval <run-id>`: records exactly which version of the plan is shown.
+2. Read `workflows/<run-id>/artifacts/final-plan.md` and present it to the master in Russian, in your own
+   short framing: the answer (`Кратко` / `Вердикт`), the budget and the decisions he must make
+   (`Риски и неопределённости`), and what will be written to his workshop memory. Quote the plan, do not
+   rewrite or extend it. During development you may name the file so he can read the full text.
+3. Tell him the two ways forward, in these words or close to them:
+   «Если всё устраивает, напиши `/garage-approve`. Если нужно что-то поправить, напиши
+   `/garage-reject` и что именно изменить.»
+4. **Stop and wait.** Never treat anything he writes in the chat as approval, however clear.
+
+## Phase 5b — Revision after rejection
+
+Entered from `/garage-reject` (the approval script has already recorded the rejection).
+
+1. Write the master's feedback verbatim to `workflows/<run-id>/feedback.md` and run
+   `node scripts/state.mjs set-feedback <run-id> workflows/<run-id>/feedback.md`.
+2. Decide which work the feedback touches, as narrowly as possible, and invalidate with a cascade
+   (dependents are regenerated automatically; this does not use up retries):
+   - wording, structure, emphasis of the plan only → `synthesizer`;
+   - a different or cheaper product, a price, a shop, a missing price → the matching product node;
+   - a different method, step order, time estimate, quantity → `project-planner` (and the research node
+     only if the method itself has to be re-researched);
+   - something factual or safety-related that the research must answer → the matching research node;
+   - a **new fact about what the master owns or has already decided** («у меня есть остатки такого-то
+     клея», «этот инструмент уже куплен») → confirm it in one short line, record it with
+     `add_inventory_item` / `update_inventory_item` **without** `run_id` (he dictated it), then invalidate
+     the nodes that depended on that item (the product node for it, `project-planner` if quantities
+     change, and everything downstream by cascade);
+   - the task itself changes → the requirements: go back to Phase 2 (a changed requirement invalidates
+     the plan).
+   Run `node scripts/state.mjs invalidate <run-id> <node> --cascade --reason "<short reason>"` for each
+   topmost affected node, then `node scripts/state.mjs set-status <run-id> executing`.
+3. Continue with Phase 4. Every dispatched node's prompt includes the master's feedback, quoted. The
+   validator re-checks everything again; the synthesizer receives the feedback and the previous plan.
+4. When `ready` reports `# WAITING_APPROVAL` again, return to Phase 5 (a new round).
+
+## Phase 6 — Final output (after `/garage-approve`)
+
+1. Make sure `node scripts/state.mjs ready <run-id>` lists `dispatch final-output-builder`. If it does
+   not, the plan is not approved or has changed: say so plainly and stop.
+2. `node scripts/state.mjs set-status <run-id> rendering`, then
+   `node scripts/state.mjs start <run-id> final-output-builder`.
+3. Dispatch the `final-output-builder` subagent (foreground). Prompt: the run id and the reminder that
+   the master approved the plan and it only runs the renderer.
+4. On `DONE`: `node scripts/state.mjs artifact-written workflows/<run-id>/output/garage-plan.html`, then
+   `node scripts/check-artifact.mjs workflows/<run-id>/output/garage-plan.html`; on `PASS`
+   `node scripts/state.mjs stage-gate <run-id> final-output-builder pass`. On `FAIL` or `BLOCKED` report
+   honestly; do not write the HTML yourself.
+
+## Phase 7 — Memory write-back and closing
+
+1. From the plan's section «Что я запишу в твою базу после одобрения» take the project line. First call
+   `list_projects`: if the master already has a project for this task (same subject, status `idea` or
+   `planned`, no `run_id`), **update that one** by passing its `id` together with the `run_id`; create a new
+   one only when there is none. Call `upsert_project` with `run_id`, `title` (keep the existing title, or
+   the master's own words), `workflow_type`, `status: planned`, `budget` and `currency` (omit the budget
+   when the plan says «не задан») and a one-sentence `summary` **in Russian** taken from the plan.
+   Always pass `run_id`: a hook allows run-derived writes only after approval. Write nothing else; items
+   and purchases are recorded later, when the master says he bought something.
+2. `node scripts/state.mjs writeback <run-id> done` (or `skipped` with the reason if it was not possible),
+   then `node scripts/state.mjs set-status <run-id> completed`.
+3. Tell the master in Russian: the guide is ready, where it is
+   (`workflows/<run-id>/output/garage-plan.html`), what was written to his workshop memory, and the open
+   decisions he still has. Do not summarise the plan again.
