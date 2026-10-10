@@ -33,7 +33,7 @@ Implemented so far:
 | HTML renderer | `scripts/render-html.mjs`, `.claude/skills/garage-html-theme/` | Standalone, deterministic HTML from the approved plan; refuses without a matching approval |
 | `evidence-validator` | `.claude/agents/evidence-validator.md` | Independent gates G1–G7 (sources, budget arithmetic, duplicates, fit, safety, requirement coverage, uncertainty); maps each failure to the owner node |
 | Hooks | `.claude/hooks/`, `.claude/settings.json` | `approval-gate-guard` and `no-leak-guard` (PreToolUse), `memory-write-guard` (PreToolUse on memory tools), `post-write-state` (PostToolUse) |
-| Skills | `.claude/skills/` | `artifact-validator` (structure and citation check, templates), `research-evidence` (research budget, local sources first, prices, uncertainty), `trade-tiling` and `trade-carpentry` (research playbooks: question checklists per trade) |
+| Skills | `.claude/skills/` | `artifact-validator` (structure and citation check, templates), `research-evidence` (research budget, local sources first, prices, uncertainty), `master-voice` (how the master's text is written), `master-onboarding` (first-run profile questions), `garage-html-theme`, `trade-tiling` and `trade-carpentry` (research playbooks: question checklists per trade) |
 | `workshop-memory` MCP server | `mcp/workshop-memory/` | Profile, inventory, purchases, projects on SQLite (9 tools) |
 | Run state | `scripts/state.mjs` (incl. composite `start-ready`, `finish-node`) | Single writer of `workflows/<run-id>/workflow-state.json`: plan DAG, node statuses, retries, cascade invalidation |
 | Stage gate G0 | `scripts/check-artifact.mjs` | Deterministic structural check of every artifact before dependents start |
@@ -67,7 +67,10 @@ GARAGE_DB=data/demo.db claude       # fictional demo master from Wrocław
 ```
 
 On the first start Claude Code asks you to approve the project MCP server `workshop-memory` from
-`.mcp.json`. Then:
+`.mcp.json`. With an empty database the first `/garage` runs a short onboarding (three rounds of at most three
+questions: name, city, country and currency; garage, power and dust extraction; skill level, preferences and
+main tools; instructions in `.claude/skills/master-onboarding/SKILL.md`), shows a summary, and saves it only
+after you confirm. Then:
 
 ```text
 /garage Хочу уложить плитку в гараже

@@ -19,13 +19,12 @@ The master's input: $ARGUMENTS
 ## Phase 0 — Profile / onboarding
 
 1. Call `get_profile`.
-2. If the profile is `null` or lacks city, currency or name, run onboarding as a short, friendly conversation
-   (at most 3 questions per message, with defaults where sensible). Collect: name, city and country,
-   currency (propose from the country), units, voltage, garage size and conditions, power lines,
-   dust extraction, skill level, preferences (DIY vs buy, new vs used, brands), and the main tools they own.
-3. Show the summary, ask for confirmation, then save with `update_profile` and `add_inventory_item`.
-   Never invent profile data.
-4. If `$ARGUMENTS` is empty after onboarding, ask what we are going to work on and stop for the answer.
+2. If the profile is `null` or lacks `name`, `city`, `country` or `currency`, read
+   `.claude/skills/master-onboarding/SKILL.md` and follow it: it lists the facts to collect, the question
+   rounds (at most 3 questions per message, with defaults), the summary and the save calls. Never invent
+   profile data and save nothing before the master has confirmed the summary.
+3. When onboarding is complete, continue with the master's original request from `$ARGUMENTS` (Phase 1). If
+   `$ARGUMENTS` is empty, ask what we are going to work on and stop for the answer.
 
 ## Resume
 

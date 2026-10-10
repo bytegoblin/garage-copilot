@@ -57,7 +57,7 @@ scripts/test/*.test.mjs` (79) and `cd mcp/workshop-memory && npm test`.
 |---|---|
 | Coordinator | `/garage`, `/garage-approve`, `/garage-reject` (pinned to `sonnet`) |
 | Subagents (8) | `requirements-formalizer`, `diy-researcher`, `product-researcher`, `project-planner`, `cost-planner`, `evidence-validator`, `synthesizer`, `final-output-builder` |
-| Skills (6) | `artifact-validator`, `research-evidence`, `garage-html-theme`, `master-voice`, `trade-tiling`, `trade-carpentry` |
+| Skills (7) | `artifact-validator`, `research-evidence`, `garage-html-theme`, `master-voice`, `master-onboarding`, `trade-tiling`, `trade-carpentry` |
 | Hooks (4) | PreToolUse: `approval-gate-guard`, `no-leak-guard`, `memory-write-guard`; PostToolUse: `post-write-state` |
 | MCP (1) | `workshop-memory`: profile, inventory, purchases, projects (SQLite) |
 | Scripts | `state.mjs`, `check-artifact.mjs`, `approve.mjs`, `render-html.mjs`, `setup.sh` |

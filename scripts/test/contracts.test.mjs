@@ -152,3 +152,25 @@ test('the hook probe command exists, is not model-invocable and names every guar
   }
   assert.match(t, /^model: (sonnet|haiku)$/m);
 });
+
+test('onboarding: the coordinator points to the onboarding skill, which covers every profile field and the save calls', () => {
+  const phase0 = COORDINATOR.split('## Phase 0')[1].split('## Resume')[0];
+  assert.match(phase0, /master-onboarding\/SKILL\.md/);
+  for (const f of ['name', 'city', 'country', 'currency']) assert.ok(phase0.includes('`' + f + '`'), `Phase 0 misses required field ${f}`);
+
+  const skill = read('.claude/skills/master-onboarding/SKILL.md');
+  assert.match(skill, /^name: master-onboarding$/m);
+  // Every field the profile tool accepts must be handled by onboarding: asked, or defaulted.
+  const server = read('mcp/workshop-memory/server.mjs');
+  const tool = server.split("registerTool('update_profile'")[1].split('}, handle')[0];
+  const fields = [...tool.matchAll(/^\s+([a-z_0-9]+): z\./gm)].map((m) => m[1]);
+  assert.ok(fields.length >= 12, 'could not read the profile fields from server.mjs');
+  for (const f of fields) assert.ok(skill.includes('`' + f + '`'), `onboarding skill does not mention profile field ${f}`);
+  for (const t of ['update_profile', 'add_inventory_item', 'get_profile']) assert.ok(skill.includes(t), `skill misses ${t}`);
+  assert.match(skill, /at most 3 questions per message/);
+  assert.match(skill, /Save nothing until the master has seen the summary/);
+  // The first message introduces the assistant: who, what for, how approval works, what is remembered.
+  const intro = skill.split('## Introduction')[1].split('\n## ')[0];
+  for (const w of [/who you are/, /what you do/, /approved that plan/, /what you remember/, /no internal names/]) assert.match(intro, w);
+  assert.match(intro, /same message as the\s+questions of round 1/);
+});
