@@ -6,8 +6,10 @@ validated and sourced plan with a shopping list and budget, asks for your explic
 renders the final HTML guide. It remembers your workshop (tools, materials, purchases, projects) in a local
 SQLite database through a custom MCP server.
 
-> **Status: work in progress.** See [docs/implementation-status.md](docs/implementation-status.md) for what
-> is implemented and verified. Design: [docs/garage-copilot-design.md](docs/garage-copilot-design.md).
+> **Status: feature complete, demo runs in progress.** See [docs/traceability.md](docs/traceability.md) for
+> how each requirement of the assignment is met and verified, and
+> [docs/implementation-status.md](docs/implementation-status.md) for the work log. Original design:
+> [docs/garage-copilot-design.md](docs/garage-copilot-design.md).
 
 ## How it works
 
@@ -94,6 +96,14 @@ written to your workshop memory. Typing "ok" or "approved" in the chat does noth
 cd mcp/workshop-memory && npm test        # starts the MCP server over stdio and exercises every tool
 node --test scripts/test/*.test.mjs       # state machine, composite commands, artifact checker, hooks, approval, contracts
 ```
+
+## Measuring token usage
+
+```bash
+node scripts/usage-report.mjs <session-id> [<session-id> ...]   # calls and tokens per agent, de-duplicated
+```
+
+Session ids are the file names under `~/.claude/projects/<project>/`.
 
 ## Repository layout
 

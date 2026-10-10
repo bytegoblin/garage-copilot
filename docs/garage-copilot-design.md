@@ -1,7 +1,28 @@
 # Garage Copilot — System Design and Implementation Plan
 
-Status: **Design approved for implementation, nothing implemented yet.**
+Status: **Implemented; this is the original design.** The current state, evidence and open items are in
+[`traceability.md`](traceability.md) and [`implementation-status.md`](implementation-status.md). Where this
+document and the code differ, the code and those two files are right; the differences are listed below.
 Deadline: 2026-10-15.
+
+### Implementation notes (supersede the text below)
+
+- **Approval (§10):** the `!` shell substitution of the slash commands is not executed by the harness in this
+  environment. The commands tell the assistant to run `scripts/approve.mjs` with Bash, and
+  `approval-gate-guard` allows exactly that call only when the last human-typed message in the transcript
+  (`origin.kind = human`) is the matching `/garage-approve` or `/garage-reject`. The approval is still bound
+  to the SHA-256 of the plan that was shown (`request-approval`), and `render-html.mjs` re-verifies it.
+- **HTML output (§5, §12):** rendered by the deterministic script `scripts/render-html.mjs` with the template
+  of the `garage-html-theme` skill; `final-output-builder` only runs and checks it.
+- **Skills:** six, not three (`master-voice`, `trade-tiling`, `trade-carpentry` added).
+- **Product research:** three parallel nodes (materials, tools, protective equipment) in the regular graph; a
+  single node in the **small** graph; coordinator picks by project size.
+- **State tooling:** composite commands `start-ready` and `finish-node`, `add-nodes`, `reset-plan`, `verify`.
+- **Limits:** artifact size targets with a 15 % tolerance (`artifact_hard_factor`); `retry` research depth.
+- **Models:** every agent and command declares a model; `node_models` overrides individual nodes.
+- **Hooks:** `approval-gate-guard` also blocks the assistant from running `approve.mjs` and
+  `render-html.mjs` outside the allowed conditions.
+- **Style:** the final plan follows the `master-voice` skill and passes a shorthand lint in G0.
 Source of truth for requirements: [`task_description.md`](../task_description.md).
 
 ---
@@ -420,31 +441,26 @@ Run by `evidence-validator` over all validated artifacts. Each failure names gat
 
 ### 10.1 Commands
 
-- `/garage-approve <run-id>`
-- `/garage-reject <run-id> <feedback in Russian>`
+- `/garage-approve [run-id]`
+- `/garage-reject [run-id] <feedback in Russian>`
 
-Both are slash command files whose body starts with a `!`-prefixed Bash line (executed by Claude Code **before** the model sees the prompt, not by the model). Only the run id (`$1`) is passed to the shell — free-text feedback never reaches the shell, which avoids quoting and injection problems:
-
-```
----
-description: Approve the final plan of a Garage Copilot run
-argument-hint: <run-id>
-allowed-tools: Bash(node scripts/approve.mjs:*)
-disable-model-invocation: true
----
-!`node scripts/approve.mjs approve $1`
-```
+Both are slash commands with `disable-model-invocation: true`. The command body tells the coordinator to run
+`node scripts/approve.mjs approve|reject [<run-id>]` with Bash; the run id is passed only when the first
+word of the master's text looks like one, free text never reaches the shell.
 
 `approve.mjs`:
-- validates `run-id` against `^[0-9]{8}-[0-9]{4}-[a-z0-9-]+$`, verifies the run exists and `approval.status == awaiting_approval`;
-- **approve:** computes SHA-256 of `artifacts/final-plan.md` and writes `approval.json` `{ decision: "approved", final_plan_sha256, approved_at, round }`; updates state `approval.status = approved`;
-- **reject:** writes `{ decision: "rejected", at, round }`, appends to history, sets run to `revision_requested`. The feedback text (rest of the arguments) is then recorded by the coordinator via `state.mjs set-feedback` and drives the revision loop. Rejection unlocks nothing, so it does not need the same deterministic guarantee as approval.
-
-`disable-model-invocation: true` prevents the model from triggering these commands itself. After the script output, the command body instructs the coordinator to continue the run from persisted state (render output and write back memory after approval; start the revision loop after rejection), so it also works in a fresh session.
+- verifies the run exists and `approval.status == awaiting_approval`;
+- compares the SHA-256 of `artifacts/final-plan.md` with the hash recorded by `state.mjs request-approval`
+  (the version that was shown); a mismatch refuses the decision;
+- **approve:** writes `approval.json` `{ decision: "approved", final_plan_sha256, approved_at, round }` and
+  calls `state.mjs record-decision`;
+- **reject:** writes `{ decision: "rejected", ... }`; the coordinator stores the feedback with
+  `state.mjs set-feedback` and starts the revision loop.
 
 ### 10.2 Verification
 
-- `approval-gate-guard` blocks any Write/Edit into `workflows/*/output/**` unless `approval.json` exists, `decision == approved`, and its `final_plan_sha256` equals the current hash of `final-plan.md`.
+- `approval-gate-guard` blocks any Write/Edit into `workflows/*/output/**` unless `approval.json` exists, `decision == approved`, and its `final_plan_sha256` equals the current hash of `final-plan.md`; it blocks `node scripts/render-html.mjs <run>` under the same condition.
+- The same hook lets the assistant run `approve.mjs` only in a turn whose last human-typed message is the master's own `/garage-approve` (for `approve`) or `/garage-reject` (for `reject`), read from the transcript the harness writes.
 - Any change to `final-plan.md` after approval invalidates approval automatically (hash mismatch); a new approval round is required.
 - Approval is never inferred from chat text ("ок", "да, норм" do nothing).
 
@@ -605,6 +621,8 @@ Resume demonstration: the Claude Code process is killed mid-execution in run 3; 
 
 ## 18. Implementation plan
 
+> Historical plan. Actual progress and decisions: [`implementation-status.md`](implementation-status.md).
+
 Each step ends with a verifiable acceptance check. Nothing is marked done in §19 until its check passes.
 
 ### Day 1 — 2026-10-10: foundation and memory
@@ -656,37 +674,8 @@ Scope cut order if late: run 4 → `how-to` workflow → `memory-write-guard` (k
 
 ## 19. Requirements traceability
 
-Status legend: **Designed** = specified in this document, not implemented.
-
-| # | Requirement (task_description.md) | Design element | Planned verification | Status |
-|---|---|---|---|---|
-| 1 | Slash command instantiates coordinator | `/garage` command in main thread (§4) | Run any demo | Designed |
-| 2 | Hub-and-spoke, dynamic subagent selection | Selection rules + DAG (§7) | Runs 1 vs 2 have different graphs in state | Designed |
-| 3 | Single responsibility + explicit artifact ownership | Agent table (§5), meta block `owner` (§6.2) | G0 checks owner | Designed |
-| 4 | Consistent subagent output structure | Common skeleton + templates (§6.2) | G0 on every artifact | Designed |
-| 5 | Dedicated synthesis subagent | `synthesizer` → `final-plan.md` (§5) | Present in every run | Designed |
-| 6 | Sequential dependent / parallel independent | DAG `ready` set, parallel Agent calls (§7, §8) | Run 2 (parallel), run 1 (sequential) | Designed |
-| 7 | Explicit quality gates | G0 per artifact, G1–G7 domain (§9) | `validation.md` in each run | Designed |
-| 8 | Gate failure → targeted retry, limit, downstream regen, stop + report | §9.3, `state.mjs invalidate --cascade`, `max_retries` | Run 3 fault injection | Designed |
-| 9 | Gather, capture, confirm missing info | Requirements loop + `qa-log.md` + explicit confirmation (§4.2) | `qa-log.md` + `requirements.confirmed` in state | Designed |
-| 10 | Plan adapts to confirmed requirements and context | Selection rules using profile/inventory (§7.1) | Run 1 excludes owned tiles | Designed |
-| 11 | Web search + MCP, not only model knowledge | WebSearch/WebFetch in researchers, `workshop-memory` MCP (§13, §14) | G1 sources; MCP calls in transcripts | Designed |
-| 12 | Reusable skills (≥2) | 3 skills (§12) | Used by multiple agents | Designed |
-| 13 | Artifacts pass gates before dependents proceed | G0 before `ready` releases dependents (§9.1) | State shows `validated` before dependent `start` | Designed |
-| 14 | Survive interruptions, resume without repeating | `workflow-state.json`, resume algorithm (§8.3) | Run 3 kill + resume | Designed |
-| 15 | Explicit, deterministically verified approval | `/garage-approve` + `!` script + SHA-256 + hook (§10) | Blocked write before approval; hash-mismatch test | Designed |
-| 16 | Rejected results revised and resubmitted | Revision loop (§10.3) | Run 3 rejection round | Designed |
-| 17 | Final result: addresses requirements, consistent structure, MD/HTML | Fixed final structures (§6.3), HTML theme (§12) | Same section order across runs | Designed |
-| 18 | CLAUDE.md documents workflow and rules | `CLAUDE.md` | Review | Designed |
-| 19 | ≥5 subagents + 1 coordinator | 8 + 1 (§3) | Agent files | Designed |
-| 20 | ≥2 skills implemented and used | 3 (§12) | Transcripts | Designed |
-| 21 | PreToolUse and PostToolUse hooks used | 3 Pre + 1 Post (§11) | Hook logs / blocked attempts | Designed |
-| 22 | ≥1 MCP integrated and used | `workshop-memory` (§13) | Tool calls in every run | Designed |
-| 23 | All components version-controlled | Repo structure (§15) | `git ls-files` | Designed |
-| 24 | ≥3 runs with inputs, artifacts, state stored | §17 | `workflows/` folders | Designed |
-| 25 | README: setup, run, resume, prerequisites, env | §18 Day 5 | Clean-checkout test | Designed |
-| 26 | No secrets committed; secrets documented | §16 | Secret scan | Designed |
-| 27 | Runs from clean checkout | `setup.sh`, `npm ci`, `.mcp.json` relative paths | Fresh clone test | Designed |
+Moved to [`traceability.md`](traceability.md), which records the real status and the evidence for every
+requirement of the task. The table that stood here only listed the planned design.
 
 ---
 
@@ -695,9 +684,10 @@ Status legend: **Designed** = specified in this document, not implemented.
 | Risk | Mitigation |
 |---|---|
 | Polish shops block `WebFetch` (Allegro especially) | Prices from search snippets marked «ориентировочно» with date; ≥2 shops required where possible; G1 still requires a URL |
-| PreToolUse hooks may behave differently for subagent tool calls | Verify on Day 3; fallback: coordinator checks approval via `state.mjs` before dispatching the builder (defence in depth) |
+| PreToolUse hooks may behave differently for subagent tool calls | Still unproven live (transcripts do not record hook runs); the renderer and `state.mjs` re-check approval themselves (defence in depth); a deliberate probe is planned (traceability §D) |
 | Model bypasses `state.mjs` via Bash redirection | `approval-gate-guard` inspects Bash commands for `workflow-state.json` / `approval.json` |
 | `memory-write-guard` relies on `run_id` being passed | Coordinator rules require `run_id` for write-back; documented limitation |
 | Domain gates are model-judged (non-deterministic) | Deterministic G0 for structure; G1–G7 findings must cite artifact + evidence; repeated runs use fixed templates |
 | Long runs eat the schedule | Demo runs on Day 5 morning; scope cut order in §18 |
+| Approval provenance depends on a transcript marker (`origin.kind = human`) | Fails closed: without the marker the assistant cannot approve; documented in traceability §E |
 | Same input → different research results across runs | Structure is fixed; content variance is expected and allowed by the task (structure must be predictable, not content) |

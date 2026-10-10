@@ -11,12 +11,12 @@ Plan and design: `docs/garage-copilot-design.md` (sections 18 and 19). Deadline:
 
 ## Current position
 
-- **Last completed step:** 17 (Day 4) — the full chain ran live end to end on run
-  `20261010-1232-garage-tiles`: requirements → … → validation → synthesis → reject → revision → approve →
-  HTML → memory write-back → `completed`.
-- **Next step:** Day 5 — (a) decide on moving quantity calculation from `project-planner` to `cost-planner`
-  (see decisions), (b) demo runs 1–3 on a fresh demo DB (+ one resume, one forced gate failure),
-  (c) README finish, clean-checkout test, secret scan, traceability table.
+- **Last completed step:** demo run 3 (`purchase-decision`, run `20261010-2340-bosch-gas15ps-dust-extraction`):
+  the Definition of Done item «≥ 3 runs» is met. Coordinator calls 161 → 77, total input 29.3 M → 10.5 M
+  (not like-for-like, see `docs/traceability.md` §G).
+- **Next step:** (1) hook probe inside a subagent; (2) start Claude Code in a fresh clone and run one short
+  `/garage`; (3) improvements found in run 3: G0 rule for PDF sources and untagged foreign sources, lighter
+  re-validation; (4) final README pass and secret scan.
 - **Open question for the master:** none
 
 ## Steps
@@ -133,7 +133,12 @@ Plan and design: `docs/garage-copilot-design.md` (sections 18 and 19). Deadline:
   Implemented in response: `start-ready` + `finish-node` composite commands (one call replaces
   artifact-written + check + stage-gate + domain-gates + ready), `research_depth.retry` (4 searches / 5 fetches,
   «start from your previous artifact»), exactly-one-line hand-backs, advice to open a new session after a pause.
-  **Not measured yet** — compare coordinator calls and tokens in demo run 3 (baseline: 161 calls, 22.5 M).
+  **Not measured yet** — compare coordinator calls and tokens in demo run 3 with `node scripts/usage-report.mjs <session-id>` (baseline, run 2: coordinator 161 calls / 22.5 M input, all agents 325 calls / 29.3 M).
+- **Demo run 3** findings: the validator caught what G0 cannot — PDF documents listed as sources although they
+  were never opened, and three foreign sources without the `[иностранный источник]` tag (G1, two rounds); the
+  validator ran 4 times with 5 page checks each (~7.5 of ~29 machine minutes); the master's mid-run remark
+  («штуцеры я напечатаю») was applied through the coordinator and inventory; new style reads as connected
+  prose; one pipeline phrase leaked into the master's text («по правилам поиска»).
 - Product research default is now three parallel nodes (materials, tools, ppe) to avoid retry rounds for
   unpriced items (round 4 finding); `_superseded-*` artifacts are git-ignored; first commit made.
 - Expected full-cycle duration is ~35 min per run; reduction deferred until after the MVP is complete.
