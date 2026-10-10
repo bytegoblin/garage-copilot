@@ -33,7 +33,7 @@ Implemented so far:
 | Hooks | `.claude/hooks/`, `.claude/settings.json` | `approval-gate-guard` and `no-leak-guard` (PreToolUse), `memory-write-guard` (PreToolUse on memory tools), `post-write-state` (PostToolUse) |
 | Skills | `.claude/skills/` | `artifact-validator` (structure and citation check, templates), `research-evidence` (research budget, local sources first, prices, uncertainty), `trade-tiling` and `trade-carpentry` (research playbooks: question checklists per trade) |
 | `workshop-memory` MCP server | `mcp/workshop-memory/` | Profile, inventory, purchases, projects on SQLite (9 tools) |
-| Run state | `scripts/state.mjs` | Single writer of `workflows/<run-id>/workflow-state.json`: plan DAG, node statuses, retries, cascade invalidation |
+| Run state | `scripts/state.mjs` (incl. composite `start-ready`, `finish-node`) | Single writer of `workflows/<run-id>/workflow-state.json`: plan DAG, node statuses, retries, cascade invalidation |
 | Stage gate G0 | `scripts/check-artifact.mjs` | Deterministic structural check of every artifact before dependents start |
 
 ## Prerequisites
@@ -92,7 +92,7 @@ written to your workshop memory. Typing "ok" or "approved" in the chat does noth
 
 ```bash
 cd mcp/workshop-memory && npm test        # starts the MCP server over stdio and exercises every tool
-node --test scripts/test/*.test.mjs       # workflow state machine, artifact checker, hooks
+node --test scripts/test/*.test.mjs       # state machine, composite commands, artifact checker, hooks, approval, contracts
 ```
 
 ## Repository layout
@@ -116,6 +116,9 @@ Progress is persisted after every step in `workflows/<run-id>/workflow-state.jso
 ```text
 /garage resume
 ```
+
+Tip: after a pause, or when a session has grown long, start a **new** session and run `/garage resume`.
+The state is on disk, a fresh session starts with a small context and the run costs noticeably fewer tokens.
 
 With one unfinished run it continues that run; with several it asks which one. Validated artifacts whose
 files are unchanged are not re-run; edited or missing ones are marked stale together with their dependents,

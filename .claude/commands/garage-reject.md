@@ -3,6 +3,7 @@ description: Reject the final plan of a Garage Copilot run and say what to chang
 argument-hint: [run-id] <what to change>
 allowed-tools: Agent, Read, Write, Bash(node scripts/approve.mjs:*), Bash(node scripts/state.mjs:*), Bash(node scripts/check-artifact.mjs:*), AskUserQuestion, mcp__workshop-memory__*
 disable-model-invocation: true
+model: sonnet
 ---
 
 The master typed `/garage-reject`. His words: $ARGUMENTS

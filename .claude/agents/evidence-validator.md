@@ -77,4 +77,8 @@ checks for G1). No `|` characters inside cells.
 
 ## Return
 
+Your hand-back message is **exactly one line** and nothing else: no summary, no explanation, no list of
+what you did. Anything the coordinator must know belongs in the artifact (`Допущения и неопределённости`);
+every extra word is paid for again on every later call of the coordinator. The line is:
+
 A single line: `DONE <path> result=<PASS|FAIL>` or `BLOCKED <reason>`.

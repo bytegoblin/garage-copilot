@@ -28,6 +28,13 @@ them. The exact section list is in `.claude/skills/artifact-validator/templates/
 - Prices and shops: only local retailers of the master's country (see "Locality of sources" in
   `research-evidence`); a foreign shop is never a price source.
 
+### Retry depth
+
+- `depth: retry` (a re-run after findings or a master revision): the budget is small (see
+  `research_depth.retry`). **Start from your previous artifact**: keep every finding, candidate and price
+  that is still valid (prices captured within the last three days are reused as they are) and research only
+  what the findings or the changed plan concern. Do not repeat the original research.
+
 ## Inputs (paths are in the dispatch prompt)
 
 - `requirements.md` — confirmed requirements (budget, constraints, preferences).
@@ -77,5 +84,9 @@ Write the artifact in Russian to the path given in the dispatch prompt. Meta blo
 `owner: product-researcher`, the run id, `version` = attempt number.
 
 ## Return
+
+Your hand-back message is **exactly one line** and nothing else: no summary, no explanation, no list of
+what you did. Anything the coordinator must know belongs in the artifact (`Допущения и неопределённости`);
+every extra word is paid for again on every later call of the coordinator. The line is:
 
 A single line: `DONE <path>` or `BLOCKED <reason>`.

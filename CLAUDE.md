@@ -30,7 +30,8 @@ concrete facts, no bureaucratic language, honest about uncertainty. Reference:
 
 > Смотри, у твоего фрезера цанга на 8 мм, а переходника на 6 мм в комплекте нет. Учти это при покупке фрезы.
 
-The tone is the `tone` field of the profile; do not add humour unless the profile asks for it.
+The full style guide with before/after examples is the `master-voice` skill (used by the synthesizer and the
+coordinator). The tone is the `tone` field of the profile; do not add humour unless the profile asks for it.
 Internal names (artifact filenames, agent names, state files, run paths) never appear in text for the master.
 
 ## Architecture
@@ -76,7 +77,10 @@ only through Markdown artifacts under `workflows/<run-id>/artifacts/`, never by 
 11. Research is bounded: each researcher gets a depth (`quick` / `standard`, limits in `config/workflow.json`) and
     stops when the budget is spent; gaps are reported as unknown, not searched on. Sources of the master's
     country first; foreign sources are supplementary, tagged, at most 2 per artifact.
-12. Trade playbooks (`.claude/skills/trade-*`) are checklists of questions, not facts; the coordinator
+12. Models are explicit, never inherited: the coordinator commands are pinned to `sonnet`; every agent
+    definition has a `model`; `config/workflow.json` → `node_models` lightens individual split nodes.
+    Validation and anything safety-relevant stays on the strong model; arithmetic and rendering are light.
+13. Trade playbooks (`.claude/skills/trade-*`) are checklists of questions, not facts; the coordinator
     picks one by task type and the researcher answers each question from sources.
 
 ## Secrets

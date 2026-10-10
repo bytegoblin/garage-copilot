@@ -59,4 +59,8 @@ Write the artifact in Russian to the path given in the dispatch prompt. Meta blo
 
 ## Return
 
+Your hand-back message is **exactly one line** and nothing else: no summary, no explanation, no list of
+what you did. Anything the coordinator must know belongs in the artifact (`Допущения и неопределённости`);
+every extra word is paid for again on every later call of the coordinator. The line is:
+
 A single line: `DONE <path>` or `BLOCKED <reason>`.

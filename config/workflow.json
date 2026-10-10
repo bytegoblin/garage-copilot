@@ -14,6 +14,10 @@
     "standard": {
       "max_searches": 12,
       "max_fetches": 15
+    },
+    "retry": {
+      "max_searches": 4,
+      "max_fetches": 5
     }
   },
   "artifact_max_chars": {
@@ -22,9 +26,12 @@
     "project-plan": 14000,
     "budget": 10000,
     "validation": 9000,
-    "final-plan": 16000
+    "final-plan": 18000
   },
   "artifact_hard_factor": 1.15,
+  "node_models": {
+    "product-researcher-ppe": "haiku"
+  },
   "playbooks": {
     "tiling": "trade-tiling",
     "carpentry": "trade-carpentry"

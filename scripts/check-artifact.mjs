@@ -233,10 +233,23 @@ if (maxChars && chars > hardChars) {
   notes.push(`artifact is ${chars} characters, above the target ${maxChars} for ${type}; accepted, aim shorter next time`);
 }
 
-// ----- final plan is user-facing: no internal names -----
+// ----- final plan is user-facing: no internal names, no private shorthand -----
 if (type === 'final-plan') {
   const leaks = findLeaks(text);
   if (leaks.length) add(`internal names in user-facing text: ${leaks.join(', ')}`);
+  const prose = text
+    .replace(/<!--[\s\S]*?-->/g, '')
+    .replace(/https?:\/\/\S+/g, '')
+    .split(/^##\s+Источники\s*$/m)[0];
+  const shorthand = [
+    [/(^|[\s(|])ор\.(?=[\s,;)|]|$)/m, 'the abbreviation «ор.» (write «приблизительно» or say how the price was checked)'],
+    [/\b[A-Za-z]_[A-Za-z]{1,2}\b/, 'variable-style notation such as c_L (give the rule in words with real numbers)'],
+    [/\b[A-Za-z]\s=\s[A-Za-z0-9(]/, 'a formula with a one-letter variable (give the rule in words with real numbers)'],
+  ];
+  for (const [re, what] of shorthand) {
+    const m = prose.match(re);
+    if (m) add(`shorthand in text for the master: ${what}`);
+  }
 }
 
 // ----- leftovers -----

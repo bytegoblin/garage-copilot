@@ -3,6 +3,7 @@ description: Approve the final plan of a Garage Copilot run (produces the final 
 argument-hint: [run-id]
 allowed-tools: Agent, Read, Write, Bash(node scripts/approve.mjs:*), Bash(node scripts/state.mjs:*), Bash(node scripts/check-artifact.mjs:*), mcp__workshop-memory__*
 disable-model-invocation: true
+model: sonnet
 ---
 
 The master typed `/garage-approve`. His words: $ARGUMENTS

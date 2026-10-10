@@ -114,4 +114,8 @@ present, in this order, **including the final `## Источники`**, which m
 
 ## Return
 
+Your hand-back message is **exactly one line** and nothing else: no summary, no explanation, no list of
+what you did. Anything the coordinator must know belongs in the artifact (`Допущения и неопределённости`);
+every extra word is paid for again on every later call of the coordinator. The line is:
+
 Reply with a single line: `DONE requirements.md status=<ready|needs-answers>` or `BLOCKED <reason>`.

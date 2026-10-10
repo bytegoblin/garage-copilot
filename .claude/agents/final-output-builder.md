@@ -29,4 +29,8 @@ If the content of the `garage-html-theme` skill is not already in your context, 
 
 ## Return
 
+Your hand-back message is **exactly one line** and nothing else: no summary, no explanation, no list of
+what you did. Anything the coordinator must know belongs in the artifact (`Допущения и неопределённости`);
+every extra word is paid for again on every later call of the coordinator. The line is:
+
 A single line: `DONE workflows/<run-id>/output/garage-plan.html` or `BLOCKED <reason with the tool output>`.

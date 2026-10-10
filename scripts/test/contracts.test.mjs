@@ -94,3 +94,42 @@ test('the small-project graph and the regular carpentry graph are accepted by th
     rmSync(wf, { recursive: true, force: true });
   }
 });
+
+test('models are explicit: every agent and command declares one, overrides use known aliases and cannot upgrade', () => {
+  const rank = { haiku: 1, sonnet: 2, opus: 3 };
+  const agentModel = {};
+  for (const f of readdirSync(join(ROOT, '.claude/agents'))) {
+    const m = read(`.claude/agents/${f}`).match(/^model: (\S+)$/m)?.[1];
+    assert.ok(rank[m], `${f}: model must be one of ${Object.keys(rank)} (got ${m})`);
+    agentModel[f.replace(/\.md$/, '')] = m;
+  }
+  for (const f of ['garage', 'garage-approve', 'garage-reject']) {
+    const fm = read(`.claude/commands/${f}.md`).split('---')[1];
+    assert.match(fm, /^model: (sonnet|haiku)$/m, `${f}: the coordinator model must be pinned`);
+  }
+  for (const [node, model] of Object.entries(CONFIG.node_models || {})) {
+    assert.ok(rank[model], `node_models.${node}: unknown model ${model}`);
+    const base = Object.keys(agentModel).find((a) => node === a || node.startsWith(`${a}-`));
+    assert.ok(base, `node_models.${node}: no agent matches`);
+    assert.ok(rank[model] <= rank[agentModel[base]], `node_models.${node} must not be more expensive than ${base}`);
+  }
+  assert.match(COORDINATOR, /node_models/);
+});
+
+test('the master-facing writers use the voice skill, and it exists', () => {
+  assert.ok(existsSync(join(ROOT, '.claude/skills/master-voice/SKILL.md')));
+  assert.match(read('.claude/agents/synthesizer.md'), /^skills: .*master-voice/m);
+  assert.match(COORDINATOR, /master-voice/);
+  assert.match(read('CLAUDE.md'), /master-voice/);
+});
+
+test('token economy: composite commands, retry depth and one-line hand-backs are wired consistently', () => {
+  assert.ok(CONFIG.research_depth.retry?.max_searches > 0 && CONFIG.research_depth.retry.max_searches < CONFIG.research_depth.quick.max_searches);
+  for (const word of ['start-ready', 'finish-node', '`retry`']) assert.ok(COORDINATOR.includes(word), `garage.md must mention ${word}`);
+  for (const a of ['diy-researcher', 'product-researcher']) {
+    assert.match(read(`.claude/agents/${a}.md`), /depth: retry/, `${a} must know the retry depth`);
+  }
+  for (const f of readdirSync(join(ROOT, '.claude/agents'))) {
+    assert.match(read(`.claude/agents/${f}`), /exactly one line/, `${f}: hand-back must be one line`);
+  }
+});

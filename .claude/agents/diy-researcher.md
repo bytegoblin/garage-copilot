@@ -26,6 +26,13 @@ The dispatch prompt gives you, besides the paths:
   «Не применимо к теме «<topic>»: см. исследование по соответствующей теме.» — keep every `##` heading.
 - `country` is taken from the profile; apply "Locality of sources".
 
+### Retry depth
+
+- `depth: retry` (a re-run after findings or a master revision): the budget is small (see
+  `research_depth.retry`). **Start from your previous artifact**: keep every finding, candidate and price
+  that is still valid (prices captured within the last three days are reused as they are) and research only
+  what the findings or the changed plan concern. Do not repeat the original research.
+
 ## Inputs (paths are in the dispatch prompt)
 
 - `requirements.md` — the confirmed requirements (validated; the only authoritative statement of the task).
@@ -75,5 +82,9 @@ Write the artifact in Russian to the path given in the dispatch prompt. Meta blo
 `owner: diy-researcher`, the run id, `version` = attempt number.
 
 ## Return
+
+Your hand-back message is **exactly one line** and nothing else: no summary, no explanation, no list of
+what you did. Anything the coordinator must know belongs in the artifact (`Допущения и неопределённости`);
+every extra word is paid for again on every later call of the coordinator. The line is:
 
 A single line: `DONE <path>` or `BLOCKED <reason>`.

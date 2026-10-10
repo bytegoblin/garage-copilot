@@ -114,6 +114,26 @@ Plan and design: `docs/garage-copilot-design.md` (sections 18 and 19). Deadline:
   coordinator has a **small** `project-plan` path (one research node `standard`, one product node `standard`)
   next to the **regular** one; examples in planner/product prompts made neutral; `contracts.test.mjs` keeps
   playbooks, coordinator and agents consistent. The carpentry playbook has not run live yet (demo run 2).
+- Model assignment (token economy): all agents have an explicit `model`; coordinator commands pinned to
+  `sonnet`; `cost-planner` was tried on `haiku` and **reverted to `sonnet`** after demo run 2 (the haiku budget
+  had an inconsistent exact/approximate split that cost a validator re-run; the saving was ~1 % of tokens);
+  `node_models.product-researcher-ppe = haiku`. Measured token drivers: product-researcher ≈70 % of subagent
+  input (143 turns over 3 sessions). Bigger levers than the model: fewer turns, fewer retry rounds, small path.
+- **Demo run 2** (hanging beech cabinet with a drawer, run `20261010-1806-hanging-cabinet-beech`, sessions
+  17bc1db8 + 32c92fbe): small path chosen (7 nodes), 3 requirement rounds, master overrides handled (safety
+  section dropped at his request, depth 26 cm, plywood as solid, anchors owned → inventory), 5 domain-gate
+  rounds, 1 reject + 1 approve, HTML, project row created, no hook false-positives, ~97 min wall clock
+  including a 3.5 h pause. Findings: (1) **the coordinator is 77 % of all input tokens** (161 calls, average
+  context 140k, growing 47k → 222k; a resumed session carries the whole earlier conversation) — earlier
+  per-agent numbers excluded it; (2) every product-research re-run repeated a full 11–12 search budget (5 full
+  runs) even for a one-number plan fix; (3) the Russian text of the final plan is telegraphic (shorthand «ор.»,
+  `W = 564 − 2g`, fragments) — caused by size caps + "one line per fact" rules + «short sentences» in the tone
+  spec; fixed with the `master-voice` skill, a shorthand lint in G0 and a larger final-plan cap (18 000);
+  (4) anchor load capacity was not found in open HTML sources (as predicted) and the plan says so.
+  Implemented in response: `start-ready` + `finish-node` composite commands (one call replaces
+  artifact-written + check + stage-gate + domain-gates + ready), `research_depth.retry` (4 searches / 5 fetches,
+  «start from your previous artifact»), exactly-one-line hand-backs, advice to open a new session after a pause.
+  **Not measured yet** — compare coordinator calls and tokens in demo run 3 (baseline: 161 calls, 22.5 M).
 - Product research default is now three parallel nodes (materials, tools, ppe) to avoid retry rounds for
   unpriced items (round 4 finding); `_superseded-*` artifacts are git-ignored; first commit made.
 - Expected full-cycle duration is ~35 min per run; reduction deferred until after the MVP is complete.

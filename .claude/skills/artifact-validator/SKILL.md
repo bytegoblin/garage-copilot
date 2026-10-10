@@ -27,6 +27,7 @@ Every artifact under `workflows/<run-id>/artifacts/` is Markdown in Russian and 
    (`requirements.md` additionally has `status` and `workflow_type`);
 3. the fixed `##` headings of its type, in the fixed order, exactly as in `templates/<type>.md`.
    Do not add, rename or reorder `##` headings; use `###` for sub-structure inside a section.
+   Write words, not private notation: no unexplained abbreviations or variable-style symbols (`c_L`, «ор.»).
 
 The three closing sections are common to every type except `validation.md` (which has its own fixed
 sections): `Покрытие требований`, `Допущения и неопределённости`, `Источники`.

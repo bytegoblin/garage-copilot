@@ -5,6 +5,7 @@ import {
   readFileSync, writeFileSync, renameSync, mkdirSync, existsSync, readdirSync, statSync,
 } from 'node:fs';
 import { createHash } from 'node:crypto';
+import { spawnSync } from 'node:child_process';
 import { dirname, resolve, join, relative, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -28,6 +29,15 @@ const REQUIREMENTS_NODE = 'requirements-formalizer';
 const REQUIREMENTS_ARTIFACT = 'artifacts/requirements.md';
 const ARTIFACT_RE = /^(artifacts\/[a-z0-9-]+\.md|output\/garage-plan\.html)$/;
 const NODE_ID_RE = /^[a-z0-9-]+$/;
+const SELF = fileURLToPath(import.meta.url);
+const CHECKER = join(ROOT, 'scripts', 'check-artifact.mjs');
+
+// Runs one of our own scripts in a child process; the composite commands are built from the primitive ones
+// so that each primitive keeps exactly one meaning.
+function child(script, args) {
+  const r = spawnSync('node', [script, ...args], { encoding: 'utf8', env: process.env });
+  return { status: r.status, out: (r.stdout || '').trim(), err: (r.stderr || '').trim() };
+}
 
 function die(msg) {
   console.error(`state: ${msg}`);
@@ -326,6 +336,63 @@ const commands = {
     if (['completed', 'blocked'].includes(s.status)) s.status = 'executing';
     saveState(s);
     console.log(`${runId}: added ${added.map((n) => n.id).join(', ')}`);
+  },
+
+  // finish-node <run-id> <node-id> [--blocked <reason...>]
+  // The whole post-processing of a finished subagent in one call: record the artifact, run the structural
+  // check (G0), apply the stage gate, apply the domain gates when the node is the validator, then behave
+  // like start-ready (nodes that became ready are started and printed as `started`).
+  'finish-node'([runId, nodeId, ...rest]) {
+    const s0 = loadState(runId);
+    const node = getNode(s0, nodeId);
+    const say = (label, r) => {
+      const text = [r.out, r.err].filter(Boolean).join('\n');
+      if (text) console.log(`[${label}] ${text.replace(/\n/g, '\n    ')}`);
+    };
+    if (rest[0] === '--blocked') {
+      const reason = rest.slice(1).join(' ') || 'the agent reported BLOCKED';
+      say('stage-gate', child(SELF, ['stage-gate', runId, nodeId, 'fail', `agent reported BLOCKED: ${reason}`]));
+    } else {
+      if (!['running', 'created'].includes(node.status)) die(`${nodeId} is ${node.status}, expected running`);
+      const abs = join(runDir(runId), node.artifact);
+      if (!existsSync(abs)) {
+        say('stage-gate', child(SELF, ['stage-gate', runId, nodeId, 'fail', `the artifact file ${node.artifact} was not written`]));
+      } else {
+        say('artifact-written', child(SELF, ['artifact-written', abs]));
+        const chk = child(CHECKER, [abs]);
+        const lines = chk.out.split('\n');
+        if (lines[0] === 'PASS') {
+          console.log(`[G0] PASS${lines.length > 1 ? `\n    ${lines.slice(1).join('\n    ')}` : ''}`);
+          const g = child(SELF, ['stage-gate', runId, nodeId, 'pass']);
+          say('stage-gate', g);
+          if (g.status === 0 && node.agent === 'evidence-validator') say('domain-gates', child(SELF, ['domain-gates', runId]));
+        } else {
+          console.log(`[G0] FAIL\n    ${lines.slice(1).join('\n    ')}`);
+          say('stage-gate', child(SELF, ['stage-gate', runId, nodeId, 'fail', lines.slice(1).join(' ')]));
+        }
+      }
+    }
+    // Next actions in the format of start-ready: nodes that became ready are already marked running.
+    const next = child(SELF, ['start-ready', runId]);
+    console.log('--- next');
+    console.log(next.out);
+  },
+
+  // start-ready <run-id> -> starts every node that `ready` offers for dispatch, prints them as `started`
+  // (same columns as `dispatch`), followed by the other actions and the closing state line.
+  'start-ready'([runId]) {
+    const r = child(SELF, ['ready', runId]);
+    if (r.status !== 0) die(r.err || r.out);
+    for (const line of r.out.split('\n')) {
+      const cols = line.split('\t');
+      if (cols[0] !== 'dispatch') {
+        console.log(line);
+        continue;
+      }
+      const st = child(SELF, ['start', runId, cols[1]]);
+      if (st.status !== 0) console.log(`error\t${cols[1]}\t${st.err || st.out}`);
+      else console.log(['started', ...cols.slice(1)].join('\t'));
+    }
   },
 
   // reset-plan <run-id> -> drops the plan and moves produced artifacts aside (requirements are kept)

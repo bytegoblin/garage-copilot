@@ -182,3 +182,19 @@ test('final plan structural check: fixed sections, workflow type and internal na
   assert.equal(r.status, 1);
   assert.match(r.stdout, /missing sections: Безопасность/);
 });
+
+test('final plan lint rejects private shorthand but accepts natural prose', () => {
+  const id = approvalRun('lint');
+  const file = join(wf, id, 'artifacts', 'final-plan.md');
+  const check = () => spawnSync('node', [join(SCRIPTS, 'check-artifact.mjs'), file], { env, encoding: 'utf8' });
+  writeFileSync(file, finalPlan(id, ' Бук стоит 49 ор. за доску.'));
+  let r = check();
+  assert.equal(r.status, 1);
+  assert.match(r.stdout, /«ор\.»/);
+  writeFileSync(file, finalPlan(id, ' Ширина короба W = 564 минус зазоры, длина c_L.'));
+  r = check();
+  assert.equal(r.status, 1);
+  assert.match(r.stdout, /variable-style notation|formula/);
+  writeFileSync(file, finalPlan(id, ' Бук обойдётся примерно в 49 zł за доску, цену смотрел по выдаче поиска.'));
+  assert.equal(check().status, 0, check().stdout);
+});
