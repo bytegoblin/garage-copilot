@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>План проекта: подвесной шкафчик из бука с ящиком</title>
+<style>
+:root {
+  --bg: #f6f4ef; --surface: #ffffff; --text: #22201c; --muted: #6b665c; --accent: #b4540a;
+  --border: #ddd6c8; --head: #efe9dc; --quote: #fbf3e2;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #17150f; --surface: #211e17; --text: #ece6d8; --muted: #a39b8a; --accent: #e08a3c;
+    --border: #3a352a; --head: #2c2820; --quote: #2a2418;
+  }
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--text);
+  font: 16px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+.wrap { max-width: 860px; margin: 0 auto; padding: 24px 16px 64px; }
+header h1 { font-size: 1.9rem; line-height: 1.25; margin: 0 0 4px; }
+header p { margin: 0; color: var(--muted); }
+nav { margin: 20px 0 8px; padding: 12px 16px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; }
+nav ol { margin: 0; padding-left: 20px; columns: 2; column-gap: 24px; }
+nav a { color: var(--accent); text-decoration: none; }
+section { margin-top: 20px; padding: 16px 18px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; }
+h2 { font-size: 1.25rem; margin: 0 0 10px; padding-bottom: 6px; border-bottom: 2px solid var(--accent); }
+h3 { font-size: 1.05rem; margin: 16px 0 6px; }
+p { margin: 8px 0; }
+ul, ol { padding-left: 22px; }
+li { margin: 4px 0; }
+ul.checklist { list-style: none; padding-left: 4px; }
+a { color: var(--accent); overflow-wrap: anywhere; }
+code { background: var(--head); padding: 1px 5px; border-radius: 4px; font-size: .92em; }
+blockquote { margin: 10px 0; padding: 8px 14px; background: var(--quote); border-left: 4px solid var(--accent); border-radius: 4px; }
+.table-wrap { overflow-x: auto; margin: 10px 0; }
+table { border-collapse: collapse; width: 100%; font-size: .93rem; }
+th, td { border: 1px solid var(--border); padding: 6px 9px; text-align: left; vertical-align: top; }
+th { background: var(--head); }
+footer { margin-top: 28px; color: var(--muted); font-size: .88rem; text-align: center; }
+@media (max-width: 560px) { nav ol { columns: 1; } header h1 { font-size: 1.5rem; } }
+@media print {
+  body { background: #fff; color: #000; }
+  section, nav { border-color: #bbb; box-shadow: none; break-inside: avoid-page; }
+  a { color: #000; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+<h1>План проекта: подвесной шкафчик из бука с ящиком</h1>
+<p>Составлено твоим помощником по мастерской</p>
+</header>
+<nav aria-label="Содержание">
+<ol>
+<li><a href="#s1">Кратко</a></li>
+<li><a href="#s2">Что мы учли</a></li>
+<li><a href="#s3">План работ по этапам</a></li>
+<li><a href="#s4">Что у тебя уже есть</a></li>
+<li><a href="#s5">Список покупок</a></li>
+<li><a href="#s6">Бюджет и сравнение с готовым решением</a></li>
+<li><a href="#s7">Безопасность</a></li>
+<li><a href="#s8">Риски и неопределённости</a></li>
+<li><a href="#s9">Что я запишу в твою базу после одобрения</a></li>
+<li><a href="#s10">Источники</a></li>
+</ol>
+</nav>
+<main>
+<section id="s1">
+<h2>Кратко</h2>
+<p>Marek, учёл твои правки. Шкафчик 600 × 150 × 260 мм: корпус и фасад из клеёного бука 18 мм, короб и дно ящика из берёзовой фанеры (ты решил считать её массивом). Навеска скрытая: две планки со скосом 45° и четыре анкера fischer, которые у тебя уже есть. Направляющие ящика ты выбираешь сам по ходу работы, размеры короба даны формулами.</p>
+<p>Чистой работы около 20–22 часов (3–4 выходных), без самодельных направляющих. Ждать: доски 3–7 дней, масло 7–14 дней.</p>
+<p>Бюджет ты не задавал. Известная часть закупки 789,10 zł, с резервом 10 % 868,01 zł. Это нижняя оценка: 472,79 zł стоят на ориентировочных ценах, часть мелочи не расценена.</p>
+<p>Решить тебе: высота 15 или 17 см, где клеить и отделывать (не в гараже), какую сумму считаешь допустимой.</p>
+</section>
+<section id="s2">
+<h2>Что мы учли</h2>
+<ul>
+<li>Подвесной шкафчик в коридор с одним выдвижным ящиком, около 60 × 15 × 25 см. Глубину ты разрешил до 26 см, берём 26.</li>
+<li>Бук, минимализм, накладной фасад, без декора. <strong>Решено тобой:</strong> фанера для короба и дна считается массивом.</li>
+<li><strong>Решено тобой:</strong> направляющие выбираешь по ходу работы, возможно самодельные реечные. План их не проектирует.</li>
+<li>Стена из газобетона, коммуникаций рядом нет (твои слова). Что газобетон не крошится и fischer держат отлично, это твой опыт, не цифра из источника.</li>
+<li>В ящике до 1 кг. Скрытое крепление прямо не подтверждал, считаю пожеланием.</li>
+<li>Цанги 8 и 12 мм, значит фрезы только с хвостовиком 8 или 12 мм. Диск HS7611 190 мм подтверждён тобой.</li>
+<li>Прозрачная отделка для коридора, движение бука учтено. Безопасность в план не входит по твоему решению.</li>
+</ul>
+</section>
+<section id="s3">
+<h2>План работ по этапам</h2>
+<p><strong>Конструкция.</strong> Глубина 260 = 18 (планка у стены) + 224 (корпус) + 18 (фасад). Бук 18 мм: верх и низ 2 × 600 × 224, боковины 2 × 126 × 224 (в четвертях), задняя доска 574 × 124 (в пазах), фасад 598 × 148, заготовка планок 560 × 80 (распил под 45° даёт две). Внутри корпуса 198 по глубине, 564 по ширине, проём 114 по высоте.</p>
+<p><strong>Короб</strong> из фанеры 12 мм, дно 8 мм в пазу без клея. Размеры через параметры твоих направляющих: ширина W = 564 − 2g (g зазор на сторону); длина L ≤ 198 − c_L (c_L запас по глубине); высота 100 мм, вертикальный запас не меньше 6,4 мм [5] и не меньше хода бука 1–1,5 мм [6]. Боковины L × 100, передняя и задняя (W − 12) × 100, дно (W − 12) × (L − 12), паз 8 × 6 мм. Для шариковых по американскому источнику [5] g = c_L = 12,7 мм: W ≈ 538, L ≤ 185. Для реечных данных нет, замеряешь сам. Шурупы направляющих: в боковину корпуса не длиннее 15 мм, в боковину короба не длиннее 9 мм или клей.</p>
+<div class="table-wrap"><table>
+<thead><tr><th>№</th><th>Этап</th><th>Что делаем</th><th>Время</th><th>Пауза / условие</th></tr></thead>
+<tbody>
+<tr><td>1</td><td>Подготовка</td><td>Подтвердить высоту (по умолчанию 150 мм), решить, где клеить и отделывать, купить по списку, записать модель и число анкеров fischer</td><td>0,5 ч + покупка</td><td>Высота не подтверждена: идём с 150 мм</td></tr>
+<tr><td>2</td><td>Выдержка досок</td><td>В помещении, где шкафчик будет висеть</td><td>0,5 ч + 3–7 дн</td><td>Не в неотапливаемом гараже; срок допущение</td></tr>
+<tr><td>3</td><td>Раскрой корпуса</td><td>Детали корпуса, +2 мм на доводку; HS7611 по прямой направляющей, диск 190 мм, рез 18 мм при пределе 65 мм [2]. Короб не кроим</td><td>3 ч</td><td>Сначала толстое, потом тонкое</td></tr>
+<tr><td>4</td><td>Фрезеровка корпуса</td><td>Четверти 6 × 18 мм на торцах верха, низа и концах боковин; пазы 6 мм под заднюю доску</td><td>2,5–3,5 ч</td><td>Сначала проба на обрезке. Хвостовик фрез 8 или 12 мм [1]</td></tr>
+<tr><td>5</td><td>Корпус</td><td>Сухая сборка, склейка, глубина 198 ±1. Задняя доска приклеена по центру на 50 мм. Планка на заднюю доску: клей и 8 шурупов изнутри</td><td>2,5 ч + схватывание</td><td>Клей Soudal 65A от +5 до +30 °C; схватывание не найдено, допущение 24 ч</td></tr>
+<tr><td>6</td><td>Ящик и фасад</td><td>По g, c_L и высоте профиля твоих направляющих кроим короб: четверти ⌀12 мм, паз ⌀8 мм под дно. Фасад винтами изнутри, зазор ≈ 1 мм (допущение)</td><td>4 ч + твои направляющие</td><td>Короб не кроим, пока размеры направляющих не определены; корпус тем временем шлифуем и отделываем. Не входит или болтается: сверить g с замером, корпус не строгать</td></tr>
+<tr><td>7</td><td>Шлифовка</td><td>120 → 180 → 240 (допущение), кромки вручную</td><td>2–3 ч</td><td>Масло подчёркивает неровности [4]</td></tr>
+<tr><td>8</td><td>Отделка</td><td>Прозрачное масло-воск, 2 слоя, второй через 4–12 ч; ящик и корпус отдельно</td><td>2 ч + 1–2 дн + 7–14 дн</td><td>Температуру взять с карточки масла (не найдена). Холодно или занято: отложить, в гараже не наносить</td></tr>
+<tr><td>9</td><td>Планка на стену</td><td>Линия по уровню, 4 точки (40 + 3 × 160 + 40 мм), анкеры fischer</td><td>1,5–2 ч</td><td><strong>Условие:</strong> модель и число анкеров подтверждены (нужно 4), длина достаёт до газобетона через штукатурку. Можно параллельно этапу 8</td></tr>
+<tr><td>10</td><td>Навеска и контроль</td><td>Шкафчик на планку; 10 мин пустой, потом 3 кг в ящике 10 мин (допущение), снять</td><td>1 ч</td><td>Ходит: снять, нагрузку не давать. Ключи не раньше 7 дней отверждения</td></tr>
+</tbody>
+</table></div>
+<p><strong>Делаем или откладываем.</strong> Склейку и отделку ведём только в тёплом помещении. Короб кроим после выбора направляющих. Вешаем, когда подтверждены анкеры и пробная нагрузка прошла без движения.</p>
+</section>
+<section id="s4">
+<h2>Что у тебя уже есть</h2>
+<ul>
+<li><strong>Есть:</strong> GOF 20-12 (цанги 8 и 12 мм по твоим словам и по [1]), POF 1200 AE (цанга 8 мм), HS7611 с диском 190 мм и запасная HS7601, DDF484, GEX 125, уровень 120 см, анкеры fischer (модель и число не названы).</li>
+<li><strong>Купить:</strong> набор фрез ⌀8 и ⌀12, струбцины, бит TX и остальное из списка. Держателя бит 25 мм нет. Сверло по газобетону под твои анкеры, по дереву и зенковка в инвентаре не записаны: возможно, есть. Направляющая для пилы делается из ровной доски.</li>
+<li><strong>Не планировалось:</strong> инструмент и материал под самодельные направляющие. Фрезы 6 мм не бери: цанги на 6 мм нет, под 1/4&quot; нужна отдельная цанга [1].</li>
+</ul>
+</section>
+<section id="s5">
+<h2>Список покупок</h2>
+<p>Цены в zł, на 2026-10-10, магазин один: «в сумму» это и средняя цена. «ор.» значит цена по сниппету или без полной проверки страницы.</p>
+<div class="table-wrap"><table>
+<thead><tr><th>Позиция</th><th>Кол-во</th><th>Магазин и цена</th><th>В сумму</th><th>Ссылка</th></tr></thead>
+<tbody>
+<tr><td>Бук ICFWood 18 × 300 × 800, клеёный щит</td><td>4</td><td>Castorama 49 ор.</td><td>196,00</td><td><a href="https://www.castorama.pl/departments/p-ka-bukowa-icfwood-18-x-300-x-800-mm-1-szt-/5945853000034_CAPL.prd">https://www.castorama.pl/departments/p-ka-bukowa-icfwood-18-x-300-x-800-mm-1-szt-/5945853000034_CAPL.prd</a></td></tr>
+<tr><td>Фанера берёза 12 мм, Fosztt 150 × 30</td><td>1</td><td>Castorama 53,99</td><td>53,99</td><td><a href="https://www.castorama.pl/departments/sklejka-brzozowa-wodoodporna-fosztt-12-mm-150-x-30-cm-1-szt/5905504236847_CAPL.prd">https://www.castorama.pl/departments/sklejka-brzozowa-wodoodporna-fosztt-12-mm-150-x-30-cm-1-szt/5905504236847_CAPL.prd</a></td></tr>
+<tr><td>Фанера берёза 8 мм, Fosztt 150 × 60</td><td>1</td><td>Castorama 99,99</td><td>99,99</td><td><a href="https://www.castorama.pl/departments/sklejka-brzozowa-wodoodporna-fosztt-8-mm-150-x-60-cm-1-szt/5908110072960_CAPL.prd">https://www.castorama.pl/departments/sklejka-brzozowa-wodoodporna-fosztt-8-mm-150-x-60-cm-1-szt/5908110072960_CAPL.prd</a></td></tr>
+<tr><td>Шурупы Azmet WT 4 × 30, 500 шт. (нужно 10)</td><td>1</td><td>Castorama 16,90</td><td>16,90</td><td><a href="https://www.castorama.pl/departments/wkr-ty-do-drewna-azmet-wt-4x30-mm-na-torx-tx-z-bem-sto-kowym-500szt/5907628710531_CAPL.prd">https://www.castorama.pl/departments/wkr-ty-do-drewna-azmet-wt-4x30-mm-na-torx-tx-z-bem-sto-kowym-500szt/5907628710531_CAPL.prd</a></td></tr>
+<tr><td>Шурупы Koelner Torx 4 × 25, 28 шт. (нужно 6)</td><td>1</td><td>OBI 7,79 ор.</td><td>7,79</td><td><a href="https://www.obi.pl/sruby-do-drewna/koelner-wkret-do-drewna-hartowany-torx-4-x-25-mm-28-szt-/p/7062599">https://www.obi.pl/sruby-do-drewna/koelner-wkret-do-drewna-hartowany-torx-4-x-25-mm-28-szt-/p/7062599</a></td></tr>
+<tr><td>Бит TX Erbauer 25 мм, 6 шт.</td><td>1</td><td>Castorama 15,98</td><td>15,98</td><td><a href="https://www.castorama.pl/bity-udarowe-erbauer-25-mm-tx10-40-6-szt-/3663602811015_CAPL.prd">https://www.castorama.pl/bity-udarowe-erbauer-25-mm-tx10-40-6-szt-/3663602811015_CAPL.prd</a></td></tr>
+<tr><td>Диски ⌀125 Polax P120, 10 шт. (нужно 3)</td><td>1</td><td>Castorama 6,59</td><td>6,59</td><td><a href="https://www.castorama.pl/departments/papier-kr-ek-cierny-polax-8-otwor-w-125-mm-p120-10-szt-/4823127514122_CAPL.prd">https://www.castorama.pl/departments/papier-kr-ek-cierny-polax-8-otwor-w-125-mm-p120-10-szt-/4823127514122_CAPL.prd</a></td></tr>
+<tr><td>Фрезы Kormax FD-SB-SET, 5 прямых (⌀8, ⌀12), хвостовик 8 мм</td><td>1</td><td>Castorama 69,99</td><td>69,99</td><td><a href="https://www.castorama.pl/departments/frez-do-drewna-prosty-kormax-6-8-12-19-20-trzpie-8mm-fd-sb-set-1-kpl-/5901431988972_CAPL.prd">https://www.castorama.pl/departments/frez-do-drewna-prosty-kormax-6-8-12-19-20-trzpie-8mm-fd-sb-set-1-kpl-/5901431988972_CAPL.prd</a></td></tr>
+<tr><td>Клей Soudal 65A, 750 мл, D3</td><td>1</td><td>Morele 52,87</td><td>52,87</td><td><a href="https://www.morele.net/soudal-klej-do-drewna-65a-750ml-3149967/">https://www.morele.net/soudal-klej-do-drewna-65a-750ml-3149967/</a></td></tr>
+<tr><td>Масло-воск Osmo Polyx 3065, 0,75 л</td><td>1</td><td>Allegro 143 ор.</td><td>143,00</td><td><a href="https://allegro.pl/produkt/wosk-twardy-osmo-3065-0-75-l-bezbarwny-polmatowy-521db980-31b6-409d-a7f4-05c9900c2f8f">https://allegro.pl/produkt/wosk-twardy-osmo-3065-0-75-l-bezbarwny-polmatowy-521db980-31b6-409d-a7f4-05c9900c2f8f</a></td></tr>
+<tr><td>Струбцина NEO Tools 120 × 800</td><td>2</td><td>Castorama 53 ор.</td><td>106,00</td><td><a href="https://www.castorama.pl/departments/-cisk-stolarski-neo-tools-120-x-800-mm-1-szt/5902062062840_CAPL.prd">https://www.castorama.pl/departments/-cisk-stolarski-neo-tools-120-x-800-mm-1-szt/5902062062840_CAPL.prd</a></td></tr>
+<tr><td>Струбцина Top Tools 50 × 200</td><td>2</td><td>Castorama 10 ор.</td><td>20,00</td><td><a href="https://www.castorama.pl/departments/-cisk-stolarski-top-tools-50-x-200-mm-1-szt/5902062100474_CAPL.prd">https://www.castorama.pl/departments/-cisk-stolarski-top-tools-50-x-200-mm-1-szt/5902062100474_CAPL.prd</a></td></tr>
+</tbody>
+</table></div>
+<p><strong>Вместо строк выше, в сумму не входят (на 2026-10-10):</strong></p>
+<ul>
+<li>Фанера «12 мм на всё», Fosztt 100 × 70, Castorama 83,90 zł вместо двух листов за 153,98 zł; дно 12 мм, внутри на 4 мм ниже: <a href="https://www.castorama.pl/departments/sklejka-brzozowa-wodoodporna-fosztt-12-mm-100-x-70-cm-1-szt/5908110070416_CAPL.prd">https://www.castorama.pl/departments/sklejka-brzozowa-wodoodporna-fosztt-12-mm-100-x-70-cm-1-szt/5908110070416_CAPL.prd</a></li>
+<li>Магазинные направляющие, если решишь: OBI, Sartpol 17 × 182, пара, 6,49 zł ор.; ход и зазор не названы: <a href="https://www.obi.pl/prowadnice/sartpol-prowadnica-kulkowa-17-mm-x-182-mm-2-sztuki/p/4303392">https://www.obi.pl/prowadnice/sartpol-prowadnica-kulkowa-17-mm-x-182-mm-2-sztuki/p/4303392</a></li>
+</ul>
+<p><strong>Без цены, в сумму не входят:</strong> шлифдиски P180 и P240 по 3 шт.; сверло по газобетону и винт под твои анкеры (диаметр по модели); сверло по дереву, зенковка; держатель бит; угольник, рулетка, карандаш или нож; шлифбрусок, кисть или ветошь. Доставка не учтена.</p>
+</section>
+<section id="s6">
+<h2>Бюджет и сравнение с готовым решением</h2>
+<p>Бюджет ты не задавал. Известная часть <strong>789,10 zł</strong>: 316,31 zł точные цены и 472,79 zł ориентировочные (бук, масло, струбцины, шуруп 4 × 25). Резерв 10 % это 78,91 zł, итого <strong>868,01 zł</strong>. Анкеры fischer у тебя есть и в сумму не входят.</p>
+<p>Варианты, не суммируются: бук 3 доски вместо 4 (147 zł вместо 196 zł) даёт 740,10 zł, но только если планка не шире 72 мм, а по расчёту она 80; фанера «12 мм на всё» даёт 719,02 zł (на 70,08 zł дешевле).</p>
+<p>Реальная сумма будет выше: позиции без цены не вошли, ориентировочные цены могут уйти, масла может не хватить (норма расхода не найдена, вторая банка около 143 zł).</p>
+<p>Готовое изделие не найдено: выдача дала МДФ и другие породы, ориентировочно 199–338 zł [7], размеры и материал не те. Сравнение по стоимости не выполнено. Фрезы, струбцины, клей и масло останутся в мастерской. Аренду инструмента не проверяли.</p>
+</section>
+<section id="s7">
+<h2>Безопасность</h2>
+<p>Не применимо: по твоему решению безопасность работы в план не входит.</p>
+</section>
+<section id="s8">
+<h2>Риски и неопределённости</h2>
+<p><strong>Что не подтверждено:</strong></p>
+<ul>
+<li><strong>Анкеры и стена.</strong> Модель и число анкеров не названы (нужно 4), длина через штукатурку, сверло и винт неизвестны. Несущую способность анкера в газобетоне по открытым источникам не нашли, они лишь говорят, что нужен анкер под газобетон [3]. Состояние стены и держимость подтверждены только твоим опытом. Оценка по размерам: шкафчик с 1 кг около 10,5 кг, около 103 Н; вытягивание около 0,21 кН на 4 анкера (около 0,05 кН на анкер), срез около 26 Н на анкер; плотность фанеры принята как у бука.</li>
+<li><strong>Направляющие.</strong> Размеры короба заданы формулами, числа предварительные. Плавность хода я не просчитывал: тип и ход выбираешь ты и проверяешь на этапе 6. Зазор 12,7 мм из американского источника [5], только для шариковых.</li>
+<li><strong>Фанера.</strong> Берёза, водостойкая, сорт не указан. Количество посчитано под W = 550 и L = 195 (допущение: g ≥ 7, c_L ≥ 3); при меньших зазорах пересчитать.</li>
+<li><strong>Отделка.</strong> Температура масла не найдена; сроки слоёв и отверждения из статьи про полы [4], для тебя это допущение.</li>
+<li><strong>Допущения без источника:</strong> схватывание клея, зернистость шлифовки, расход клея и масла, выдержка досок, зазор фасада 1 мм, контрольная нагрузка 3 кг. Усадка бука [6] из иностранного источника.</li>
+<li><strong>Место в коридоре и высота над полом</strong> не названы, это параметр этапа 9. Отсутствие проводов только по твоим словам.</li>
+</ul>
+<p><strong>Что нужно решить тебе:</strong></p>
+<ol>
+<li><strong>Высота.</strong> 15 см (по умолчанию): проём 114 мм, короб 100 мм, внутри около 85–90 мм, для ключей и мелочи хватает. Или 17 см: проём 134, короб 120, внутри около 105–110 мм, шкафчик выше. Покупки и раскладка бука считались под 15 см, под 17 пересчитывать.</li>
+<li><strong>Где клеить и отделывать.</strong> Гараж не отапливается, клей работает от +5 °C, у масла температура неизвестна. Проект плитки в гараже (около +5 °C на 18–19 дней, старт не позже 12.10) не разрешён. Этапы 2 и 8 рассчитаны на тёплое помещение. Где пилить и фрезеровать, не определено.</li>
+<li><strong>Фанера и бук.</strong> Фанера 12 + 8 мм (153,98 zł) или 12 мм на всё (83,90 zł). Бук: 4 доски по раскладке (по умолчанию: планка 80 мм рядом с деталью 224 мм не помещается в доску 300 мм) или 3 доски, если планка не шире 72 мм; такую планку я не проверял.</li>
+<li><strong>Анкеры.</strong> До этапа 9 назвать модель и число; при нехватке докупить, цена в расчёт не входит.</li>
+<li><strong>Сумма.</strong> Какую считаешь допустимой. Пока известно 789,10 zł, с резервом 868,01 zł, и это не итог.</li>
+</ol>
+</section>
+<section id="s9">
+<h2>Что я запишу в твою базу после одобрения</h2>
+<ul>
+<li>Проект: «Подвесной шкафчик из бука с одним ящиком для коридора», статус «запланирован», бюджет не задан, тип «project-plan». Кратко: шкафчик 600 × 150 × 260 мм из бука и фанеры с одним ящиком на скрытых планках к стене из газобетона.</li>
+<li>Инвентарь и покупки не записываю: они попадут в базу, когда ты скажешь, что купил.</li>
+</ul>
+</section>
+<section id="s10">
+<h2>Источники</h2>
+<ol>
+<li>Bosch GOF 20-12 (0601627220), страница производителя — <a href="https://www.bosch-professional.com/pl/pl/products/gof-20-12-0601627220">https://www.bosch-professional.com/pl/pl/products/gof-20-12-0601627220</a> (дата обращения: 2026-10-10)</li>
+<li>Pilarka tarczowa Makita HS7611 1600 W 190 mm, Morele — <a href="https://www.morele.net/hs7611-1600-w-190-mm-4146291/">https://www.morele.net/hs7611-1600-w-190-mm-4146291/</a> (дата обращения: 2026-10-10)</li>
+<li>Jaki kołek montażowy do pustaka i betonu komórkowego, Muratordom — <a href="https://muratordom.pl/remont-domu/sprzet-i-narzedzia/jaki-kolek-montazowy-do-pustaka-i-betonu-komorkowego-jaki-do-karton-gipsu-radzimy-co-wybrac-aa-z8Sc-tFVq-3NBz.html">https://muratordom.pl/remont-domu/sprzet-i-narzedzia/jaki-kolek-montazowy-do-pustaka-i-betonu-komorkowego-jaki-do-karton-gipsu-radzimy-co-wybrac-aa-z8Sc-tFVq-3NBz.html</a> (дата обращения: 2026-10-10)</li>
+<li>Olejowanie drewna, Muratordom — <a href="https://muratordom.pl/wnetrza/prace-wykonczeniowe/olejowanie-drewna-jaki-olej-do-podlogi-drewnianej-i-mebli-aa-P9u2-2yWG-XAaP.html">https://muratordom.pl/wnetrza/prace-wykonczeniowe/olejowanie-drewna-jaki-olej-do-podlogi-drewnianej-i-mebli-aa-P9u2-2yWG-XAaP.html</a> (дата обращения: 2026-10-10)</li>
+<li>[иностранный источник] Drawer Slide Influence On Drawer Box Dimensions, QuikDrawers (США) — <a href="https://quikdrawers.com/Drawer-Slide-Influence-On-Drawer-Box-Dimensions">https://quikdrawers.com/Drawer-Slide-Influence-On-Drawer-Box-Dimensions</a> (дата обращения: 2026-10-10)</li>
+<li>[иностранный источник] European Beech, The Wood Database (США) — <a href="https://www.wood-database.com/european-beech/">https://www.wood-database.com/european-beech/</a> (дата обращения: 2026-10-10)</li>
+<li>Kaufland.pl, выдача по готовым шкафчикам (сниппет) — <a href="https://www.kaufland.pl/product/333735828/">https://www.kaufland.pl/product/333735828/</a> (дата обращения: 2026-10-10)</li>
+</ol>
+<p>Позиции списка покупок подтверждены страницами по ссылкам в таблице (дата обращения: 2026-10-10).</p>
+</section>
+</main>
+<footer>План одобрен 2026-10-10. Цены ориентировочные, смотри даты рядом с ними.</footer>
+</div>
+</body>
+</html>

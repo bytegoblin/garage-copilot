@@ -1,0 +1,262 @@
+{
+  "schema_version": 1,
+  "run_id": "20261010-1806-hanging-cabinet-beech",
+  "created_at": "2026-10-10T16:06:22.301Z",
+  "updated_at": "2026-10-10T21:08:56.721Z",
+  "status": "completed",
+  "workflow_type": "project-plan",
+  "request_file": "request.md",
+  "requirements": {
+    "confirmed": true,
+    "confirmed_at": "2026-10-10T16:15:55.565Z",
+    "artifact_sha256": "7572f5622cfaa4a7d145d2fecdf78e00306d59a3d36ca3230a64ae0832faaf45"
+  },
+  "config": {
+    "max_retries": 3
+  },
+  "plan": {
+    "nodes": [
+      {
+        "id": "requirements-formalizer",
+        "agent": "requirements-formalizer",
+        "artifact": "artifacts/requirements.md",
+        "depends_on": [],
+        "gate": null,
+        "status": "validated",
+        "attempts": 1,
+        "retries": 0,
+        "artifact_sha256": "7572f5622cfaa4a7d145d2fecdf78e00306d59a3d36ca3230a64ae0832faaf45",
+        "stage_gate": {
+          "result": "pass",
+          "at": "2026-10-10T16:15:55.565Z"
+        },
+        "last_error": null
+      },
+      {
+        "id": "diy-researcher",
+        "agent": "diy-researcher",
+        "artifact": "artifacts/research.md",
+        "depends_on": [
+          "requirements-formalizer"
+        ],
+        "gate": null,
+        "status": "validated",
+        "attempts": 1,
+        "retries": 0,
+        "artifact_sha256": "27edcd4a65f49e8f8a9243572f887599359cf4388a6b8bfdcccf3cf2c0891197",
+        "stage_gate": {
+          "result": "pass",
+          "at": "2026-10-10T16:21:16.944Z"
+        },
+        "last_error": null,
+        "started_at": "2026-10-10T16:16:08.044Z"
+      },
+      {
+        "id": "project-planner",
+        "agent": "project-planner",
+        "artifact": "artifacts/project-plan.md",
+        "depends_on": [
+          "diy-researcher"
+        ],
+        "gate": null,
+        "status": "validated",
+        "attempts": 4,
+        "retries": 0,
+        "artifact_sha256": "98cadba4fe2db7c8c0b9b2cc95604a6a6cbcd346110763069ec48b6befaaec5d",
+        "stage_gate": {
+          "result": "pass",
+          "at": "2026-10-10T20:47:20.977Z"
+        },
+        "last_error": null,
+        "started_at": "2026-10-10T20:43:55.106Z"
+      },
+      {
+        "id": "product-researcher",
+        "agent": "product-researcher",
+        "artifact": "artifacts/products.md",
+        "depends_on": [
+          "project-planner"
+        ],
+        "gate": null,
+        "status": "validated",
+        "attempts": 5,
+        "retries": 0,
+        "artifact_sha256": "4ed5871101cc8b5a5bfb6cab7e3af4ccd0d4bc57704f94bb5f80fe9336f46e80",
+        "stage_gate": {
+          "result": "pass",
+          "at": "2026-10-10T20:52:32.963Z"
+        },
+        "last_error": null,
+        "started_at": "2026-10-10T20:47:23.023Z"
+      },
+      {
+        "id": "cost-planner",
+        "agent": "cost-planner",
+        "artifact": "artifacts/budget.md",
+        "depends_on": [
+          "product-researcher"
+        ],
+        "gate": null,
+        "status": "validated",
+        "attempts": 5,
+        "retries": 1,
+        "artifact_sha256": "1db560a65c0c8e808e05001832ee64f8215920207da9121565a6ae33ae3372fd",
+        "stage_gate": {
+          "result": "pass",
+          "at": "2026-10-10T20:58:04.196Z"
+        },
+        "last_error": null,
+        "started_at": "2026-10-10T20:57:39.428Z"
+      },
+      {
+        "id": "evidence-validator",
+        "agent": "evidence-validator",
+        "artifact": "artifacts/validation.md",
+        "depends_on": [
+          "cost-planner"
+        ],
+        "gate": null,
+        "status": "validated",
+        "attempts": 6,
+        "retries": 0,
+        "artifact_sha256": "d1048c50658ce42bfab55b60f1ac2ce7e8323dc5be43470fd0c6112611447778",
+        "stage_gate": {
+          "result": "pass",
+          "at": "2026-10-10T21:00:42.016Z"
+        },
+        "last_error": null,
+        "started_at": "2026-10-10T20:58:06.363Z"
+      },
+      {
+        "id": "synthesizer",
+        "agent": "synthesizer",
+        "artifact": "artifacts/final-plan.md",
+        "depends_on": [
+          "evidence-validator"
+        ],
+        "gate": null,
+        "status": "validated",
+        "attempts": 2,
+        "retries": 0,
+        "artifact_sha256": "c055be665cb03d7eb962f09d58c4ad1818680971f84dec2541e7daaf4a7aead3",
+        "stage_gate": {
+          "result": "pass",
+          "at": "2026-10-10T21:05:35.235Z"
+        },
+        "last_error": null,
+        "started_at": "2026-10-10T21:00:44.217Z"
+      },
+      {
+        "id": "final-output-builder",
+        "agent": "final-output-builder",
+        "artifact": "output/garage-plan.html",
+        "depends_on": [
+          "synthesizer"
+        ],
+        "gate": "approval",
+        "status": "validated",
+        "attempts": 1,
+        "retries": 0,
+        "artifact_sha256": "c4f8bc2c13955f50b5e1e7b7c2553446f3c3722bca301ed55d1f4f7ec5509414",
+        "stage_gate": {
+          "result": "pass",
+          "at": "2026-10-10T21:08:49.356Z"
+        },
+        "last_error": null,
+        "started_at": "2026-10-10T21:08:38.943Z"
+      }
+    ]
+  },
+  "domain_gates": {
+    "attempt": 5,
+    "results": [
+      {
+        "gate": "G1",
+        "status": "PASS",
+        "artifact": "—",
+        "node": "—",
+        "finding": "Решающие утверждения и цены имеют источник; в таблицах цен у каждой строки магазин, URL и дата 2026-10-10; цены из сниппетов помечены «ориентировочно». Иностранных источников два (research.md, 5 и 6), оба помечены с причиной; магазины только польские. Выборка из двух HTML-страниц, не проверявшихся ранее: Castorama, Kormax FD-SB-SET (69,99 zł, 5 фрез ⌀6, 8, 12, 19, 20, хвостовик 8 мм) совпала; Morele, Soudal 65A 750 мл (52,87 zł, D3, +5…+30 °C) совпала. Лимит загрузок не достигнут. Повторно открыта Fosztt 8 мм 150×60 (99,99 zł): совпала",
+        "fix": "—"
+      },
+      {
+        "gate": "G2",
+        "status": "PASS",
+        "artifact": "—",
+        "node": "—",
+        "finding": "Пересчёт построчно: 196,00 + 53,99 + 99,99 + 16,90 + 7,79 + 15,98 + 6,59 + 69,99 + 52,87 + 143,00 + 106,00 + 20,00 = 789,10 zł. Точные цены 316,31, ориентировочные 472,79 (бук 196, масло 143, шуруп 7,79, струбцины 106 + 20): в сумме 789,10, как в «Кратко», «Итого» и «Резерве». Резерв 10 % = 78,91, итого 868,01. Альтернативы 740,10 (бук 3 доски) и 719,02 («12 на всё», −70,08) верны. Количества соответствуют плану и раскладке в products.md; позиции без цены перечислены и в сумму не входят, это сказано. Бюджет не задан",
+        "fix": "—"
+      },
+      {
+        "gate": "G3",
+        "status": "PASS",
+        "artifact": "—",
+        "node": "—",
+        "finding": "check_owned: фанеры, бука, шурупов, бит, фрез, дисков, клея, масла, струбцин, направляющих, сверла по камню в инвентаре нет. Анкеры fischer есть (запись: модель и число не названы) и не покупаются. Фрезеры, пилы, DDF484, GEX 125 берутся свои",
+        "fix": "—"
+      },
+      {
+        "gate": "G4",
+        "status": "PASS",
+        "artifact": "—",
+        "node": "—",
+        "finding": "Kormax с хвостовиком 8 мм встают в обе цанги (GOF 20-12: 8 и 12; POF 1200 AE: 8), фрез 6 мм в плане нет. Диск 190 мм подтверждён мастером и инвентарём; глубина реза 18 мм при пределе 65 мм. Клей D3 с нижним пределом +5 °C подходит для коридора. Размеры короба заданы формулой W = 564 − 2g, число 538 дано как пример для шариковых; куски фанеры 150×30, 150×60, 100×70 вмещают раскладку. План, товары и бюджет не противоречат друг другу",
+        "fix": "—"
+      },
+      {
+        "gate": "G5",
+        "status": "PASS",
+        "artifact": "—",
+        "node": "—",
+        "finding": "Охрана труда исключена решением мастера (requirements.md, «Допущения»), не проверялась. Нагрузка на крепёж оценена (≈ 10,5 кг, ≈ 0,05 кН на анкер), в плане есть пробное отверстие, проверка модели и числа анкеров, контрольная нагрузка 3 кг. Стена и держимость fischer поданы как опыт мастера, не как источник. Противоречий с источниками о самой сборке нет",
+        "fix": "—"
+      },
+      {
+        "gate": "G6",
+        "status": "PASS",
+        "artifact": "—",
+        "node": "—",
+        "finding": "R3 применён последовательно: корпус, фасад и планки из бука, короб и дно из фанеры по решению мастера (feedback.md). R1, R2, R4, R8, R9, R11 адресованы в нужных местах; R5 закрыт расчётом и опытом мастера с проверкой анкеров перед этапом 9; R7 «частично» по решению мастера (направляющие выбирает он), размеры короба заданы формулами; R6 и R10 (should) закрыты или объявлены частичными с причиной. R12 (could) не покрыт, не FAIL",
+        "fix": "—"
+      },
+      {
+        "gate": "G7",
+        "status": "PASS",
+        "artifact": "—",
+        "node": "—",
+        "finding": "Остатки снятых позиций проверены по всем пяти артефактам: «⌀14» в budget.md нет, анкера GB 14 в закупках и бюджете нет (в research.md он лишь в сниппетной заметке «проектными не считать»), бука 8 мм нет, сверло под анкеры без диаметра. Неизвестное объявлено: модель и число анкеров, ход и зазор направляющих, температура масла, сорт фанеры, цена раскроя, цены сниппетов. Допущения помечены как допущения",
+        "fix": "—"
+      }
+    ],
+    "result": "pass",
+    "processed_sha256": "d1048c50658ce42bfab55b60f1ac2ce7e8323dc5be43470fd0c6112611447778"
+  },
+  "approval": {
+    "status": "approved",
+    "round": 2,
+    "history": [
+      {
+        "round": 1,
+        "decision": "rejected",
+        "at": "2026-10-10T20:42:44.483Z",
+        "final_plan_sha256": "c77255b94d34f384507ff111ae8af78bbbdfe8982cc052f3950b01ae3620905e",
+        "feedback": "считаем фанеру тоже масссивом - она подойдет для каркаса шуфлядки и ее дна. Направляющие - не вопрос, решу по ходу исполнения. Возможно, это будут кастомные реечные направляющие, не магазинные. Газобетон не крошится, дюбели Fischer держаться отлично. Диаметр диска 190мм."
+      },
+      {
+        "round": 2,
+        "decision": "approved",
+        "at": "2026-10-10T21:08:34.797Z",
+        "final_plan_sha256": "c055be665cb03d7eb962f09d58c4ad1818680971f84dec2541e7daaf4a7aead3",
+        "feedback": null
+      }
+    ],
+    "pending_sha256": "c055be665cb03d7eb962f09d58c4ad1818680971f84dec2541e7daaf4a7aead3"
+  },
+  "memory_writeback": {
+    "status": "done",
+    "at": "2026-10-10T21:08:56.679Z"
+  },
+  "final_output": {
+    "status": "done",
+    "path": "output/garage-plan.html"
+  }
+}
