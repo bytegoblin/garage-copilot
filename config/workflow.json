@@ -20,6 +20,10 @@
       "max_fetches": 5
     }
   },
+  "validator_depth": {
+    "first_pass_spot_checks": 5,
+    "revalidation_spot_checks": 2
+  },
   "artifact_max_chars": {
     "research": 10000,
     "products": 9000,
@@ -29,6 +33,46 @@
     "final-plan": 18000
   },
   "artifact_hard_factor": 1.15,
+  "source_policy": {
+    "local_tlds": [
+      "pl"
+    ],
+    "eu_tlds": [
+      "eu",
+      "at",
+      "be",
+      "bg",
+      "hr",
+      "cy",
+      "cz",
+      "dk",
+      "ee",
+      "fi",
+      "fr",
+      "de",
+      "gr",
+      "hu",
+      "ie",
+      "it",
+      "lv",
+      "lt",
+      "lu",
+      "mt",
+      "nl",
+      "pt",
+      "ro",
+      "sk",
+      "si",
+      "es",
+      "se"
+    ],
+    "ambiguous_locale_codes": [
+      "en",
+      "int",
+      "global",
+      "www"
+    ]
+  },
   "node_models": {
     "product-researcher-ppe": "haiku"
   },

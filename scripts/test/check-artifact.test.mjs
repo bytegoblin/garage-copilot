@@ -215,3 +215,30 @@ test('validation: gate ids with names are accepted', () => {
   const r = check('validation.md');
   assert.equal(r.status, 0, r.stdout);
 });
+
+test('PDF sources and untagged foreign sources fail; EU and local pages pass', () => {
+  const doc = (src) => productsDoc(GOOD_ROW, 'R1 — покрыто', src);
+  const run = (src) => {
+    writeFileSync(join(artifacts, 'products.md'), doc(src));
+    return check('products.md');
+  };
+  const ok = '1. Producent — https://www.bosch-professional.com/pl/pl/products/x (дата обращения: 2026-10-10)\n'
+    + '2. Hersteller — https://www.bosch-professional.com/de/de/products/y (дата обращения: 2026-10-10)\n'
+    + '3. Sklep — https://www.morele.net/p/1 (дата обращения: 2026-10-10)';
+  assert.equal(run(ok).status, 0, run(ok).stdout);
+
+  let r = run('1. Karta — https://example.pl/docs/instrukcja.pdf (дата обращения: 2026-10-10)');
+  assert.equal(r.status, 1);
+  assert.match(r.stdout, /PDF source/);
+
+  r = run('1. Shop — https://www.protrade.co.uk/p/1 (дата обращения: 2026-10-10)');
+  assert.equal(r.status, 1);
+  assert.match(r.stdout, /foreign source without the/);
+
+  r = run('1. Bosch — https://www.bosch-professional.com/za/en/products/x (дата обращения: 2026-10-10)');
+  assert.equal(r.status, 1);
+  assert.match(r.stdout, /foreign source without the/);
+
+  r = run('1. [иностранный источник] Bosch ZA — https://www.bosch-professional.com/za/en/products/x (дата обращения: 2026-10-10) — нет польской страницы с этими данными');
+  assert.equal(r.status, 0, r.stdout);
+});

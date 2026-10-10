@@ -133,3 +133,22 @@ test('token economy: composite commands, retry depth and one-line hand-backs are
     assert.match(read(`.claude/agents/${f}`), /exactly one line/, `${f}: hand-back must be one line`);
   }
 });
+
+test('re-validation is wired: config, validator agent and coordinator agree', () => {
+  assert.ok(CONFIG.validator_depth.revalidation_spot_checks < CONFIG.validator_depth.first_pass_spot_checks);
+  const v = read('.claude/agents/evidence-validator.md');
+  assert.match(v, /re-validation/i);
+  assert.match(v, /revalidation_spot_checks/);
+  assert.match(COORDINATOR, /validator_depth/);
+  assert.match(COORDINATOR, /re-run since the\s+previous report/);
+  assert.ok(Array.isArray(CONFIG.source_policy.local_tlds) && CONFIG.source_policy.eu_tlds.length > 20);
+});
+
+test('the hook probe command exists, is not model-invocable and names every guarded action', () => {
+  const t = read('.claude/commands/garage-probe-hooks.md');
+  assert.match(t, /disable-model-invocation: true/);
+  for (const w of ['no-leak-guard', 'approval-gate-guard', 'memory-write-guard', 'record_purchase', 'workflow-state.json', 'garage-plan.html']) {
+    assert.ok(t.includes(w), `probe must mention ${w}`);
+  }
+  assert.match(t, /^model: (sonnet|haiku)$/m);
+});

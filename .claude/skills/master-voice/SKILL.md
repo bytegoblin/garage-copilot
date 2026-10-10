@@ -29,8 +29,9 @@ read like notes.** Russian examples below are quoted output, not repository text
 
 - Abbreviations and shorthand: «ор.», «доп.», «шт.» as a stand-in for a sentence, arrows, `=` chains.
 - Variable names, subscripts and formulas (`W = 564 − 2g`, `c_L`). Give the rule in words with the real numbers.
-- Pipeline vocabulary: «допущение планировщика», «узел», «гейт», «исследователь нашёл», file or agent names.
-  Say what was done: «я посмотрел», «я пересчитал», «проверка показала».
+- Pipeline vocabulary: «допущение планировщика», «узел», «гейт», «исследователь нашёл», «по правилам
+  поиска», file or agent names. Say what was done: «я посмотрел», «я пересчитал», «проверка показала»;
+  for a document that was not read: «инструкции в PDF я не читаю».
 - Stacks of parenthesised remarks and nested brackets. Move the aside into its own sentence.
 - Repeating a label such as «допущение» or «не найдено» as a tag. Use natural phrasing: «я исходил из того, что…»,
   «в источниках этого нет».

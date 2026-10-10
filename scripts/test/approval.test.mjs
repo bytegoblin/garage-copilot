@@ -195,6 +195,10 @@ test('final plan lint rejects private shorthand but accepts natural prose', () =
   r = check();
   assert.equal(r.status, 1);
   assert.match(r.stdout, /variable-style notation|formula/);
+  writeFileSync(file, finalPlan(id, ' Инструкции в PDF по правилам поиска не читались.'));
+  r = check();
+  assert.equal(r.status, 1);
+  assert.match(r.stdout, /pipeline/);
   writeFileSync(file, finalPlan(id, ' Бук обойдётся примерно в 49 zł за доску, цену смотрел по выдаче поиска.'));
   assert.equal(check().status, 0, check().stdout);
 });

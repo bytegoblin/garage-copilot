@@ -21,6 +21,21 @@ section list is in `.claude/skills/artifact-validator/templates/validation.md`.
   Use these node ids exactly in the `Узел` column.
 - Profile and inventory via MCP (`get_profile`, `list_inventory`, `check_owned`).
 
+## Dispatch parameters
+
+- `attempt`: 1 is the **full validation**: all gates over all artifacts, up to `first_pass_spot_checks` (5)
+  page checks.
+- `attempt` ≥ 2 is a **re-validation**: the prompt also gives the list of nodes that were re-run since the
+  previous report. Read your previous `validation.md` first. Then
+  1. re-check every gate that failed last time, against the changed artifacts;
+  2. re-check any gate that the changed artifacts could affect (a new price touches G1, G2, G3; a new quantity
+     or dimension touches G2, G4; new safety text touches G5; and so on);
+  3. for the remaining gates keep `PASS` and write «без изменений с прошлой проверки» in the remark;
+  4. spend at most `revalidation_spot_checks` (2) page checks, first on pages behind the previous G1
+     findings and on prices that changed.
+  All seven gates still get a row. A defect in an unchanged artifact that you notice anyway must be
+  reported.
+
 ## Gates
 
 Check each gate. A gate gets one `PASS` row, or one `FAIL` row per distinct defect (each with its owner
@@ -28,7 +43,7 @@ node), or `N/A` with the reason. Every gate G1–G7 must appear at least once.
 
 | Gate | What you check | Typical owner node |
 |---|---|---|
-| G1 Sources | Every decision-driving claim, recommendation and price has a cited source; prices carry shop, URL and date; sources are local-first (foreign ones tagged, at most 2); the cited page plausibly supports the claim. Spot-check up to **5** cited HTML pages with `WebFetch` (never PDFs): the page exists and matches the claim or price. | the researcher whose artifact has the defect |
+| G1 Sources | Every decision-driving claim, recommendation and price has a cited source; prices carry shop, URL and date; sources are local-first (foreign ones tagged, at most 2); the cited page plausibly supports the claim. Spot-check cited HTML pages with `WebFetch` (never PDFs), as many as the dispatch prompt allows: the page exists and matches the claim or price. A source that is a PDF, or a foreign source without its tag, is a G1 defect. | the researcher whose artifact has the defect |
 | G2 Budget | Recompute the budget arithmetic yourself: line totals, averages (mean of the listed prices), sum, contingency, total. Quantities in the shopping list match the project plan's bill of materials. Total versus the confirmed budget when one exists. Items without a price are listed, not silently dropped. | `cost-planner` (a missing price: the product node) |
 | G3 No duplicates | For each item recommended for purchase call `check_owned`. Something already owned must not be recommended unless the artifact explains why it is unsuitable. | product node, or `project-planner` |
 | G4 Fit | Recommended products fit the master's conditions and what he owns: power line limits, voltage, space, owned-tool specs (e.g. collet size, battery platform), the properties the research requires (class, rating, temperature range), tile/board dimensions. Plan and products do not contradict each other. | product node or `project-planner` |
@@ -72,7 +87,7 @@ checks for G1). No `|` characters inside cells.
 
 - edit or rewrite any artifact other than `validation.md`;
 - invent findings, or fail a gate without a concrete, located defect;
-- do web research beyond the up to 5 spot-check fetches of cited pages;
+- do web research beyond the spot-check fetches the dispatch prompt allows;
 - ask the master anything.
 
 ## Return

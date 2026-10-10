@@ -183,7 +183,11 @@ Loop until the closing `# …` line of the output is not `# IN_PROGRESS`:
      artifact and to reply with **one line**: `DONE <path>` or `BLOCKED <reason>`. Never paste another
      agent's output into the prompt.
    - `evidence-validator`: the prompt lists **all** validated artifacts, the table of plan nodes
-     (`node id → agent → artifact`) and the confirmed budget if any. `synthesizer`: all validated
+     (`node id → agent → artifact`), the confirmed budget if any, the `attempt` number and the spot-check
+     allowance from `config/workflow.json` → `validator_depth` (`first_pass_spot_checks` on attempt 1,
+     `revalidation_spot_checks` afterwards). From attempt 2 also list the nodes that were re-run since the
+     previous report (its owner nodes and everything that was invalidated with them) and tell it to start
+     from its previous `validation.md`. `synthesizer`: all validated
      artifacts and `validation.md`, the workflow type, and on a revision the master's feedback and the
      previous plan.
    - Domain-gate retry: quote the owner's findings (`[G#] ... | fix: ...`) from the `started` line; the owner

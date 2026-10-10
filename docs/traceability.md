@@ -88,12 +88,21 @@ Planned: one deliberate probe in a subagent (write an internal name into the fin
    example; external information comes from web search.
 5. The domain is custom (home-workshop assistant), which the task allows.
 
+## Known findings of the current checker on the earlier runs
+
+Run 1 cites PDF data sheets (4 artifacts) and Run 2's final plan predates the style rules; see
+`workflows/README.md`. They were produced under earlier rules and are kept unchanged as historical records.
+Run 3 passes all checks.
+
 ## F. Open items before submission
 
-1. Live hook probe in a subagent.
-2. Start Claude Code in a fresh clone and run one short `/garage`.
-3. Optional: a live run of a forced unresolved failure (`# BLOCKED`) to replace the test-only evidence of A7.
-4. Optional: a repeat of one run with the same input to show structural identity (A16).
+1. Live hook probe in a subagent (`/garage-probe-hooks`, run by the master; result goes to `docs/hook-probe.md`
+   and §D).
+2. Start Claude Code in a fresh clone and run one short `/garage` (`setup.sh` and the tests already pass in a clone).
+3. Measure the light re-validation on a run with a validator FAIL.
+4. Final README read-through and secret scan.
+5. Optional: a live run of a forced unresolved failure (`# BLOCKED`) to replace the test-only evidence of A7.
+6. Optional: a repeat of one run with the same input to show structural identity (A16).
 
 ## G. Token economy, measured (`scripts/usage-report.mjs`)
 

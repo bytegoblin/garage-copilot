@@ -206,6 +206,39 @@ for (const l of foreign) {
   }
 }
 
+// ----- source policy: no PDF documents; foreign sources must carry the tag (the count limit is above) -----
+{
+  const policy = CONFIG.source_policy || {};
+  const local = new Set((policy.local_tlds || []).map((t) => t.toLowerCase()));
+  const eu = new Set((policy.eu_tlds || []).map((t) => t.toLowerCase()));
+  const ambiguous = new Set((policy.ambiguous_locale_codes || []).map((t) => t.toLowerCase()));
+  const sourceLines = section(text, 'Источники').split('\n').filter((l) => /https?:\/\//.test(l));
+  for (const line of sourceLines) {
+    for (const raw of line.match(/https?:\/\/[^\s)>\]]+/g) || []) {
+      let u;
+      try {
+        u = new URL(raw);
+      } catch {
+        continue;
+      }
+      const label = `${u.hostname}${u.pathname}`.slice(0, 70);
+      if (/\.pdf$/i.test(u.pathname)) {
+        add(`PDF source "${label}": PDF documents are not read in this project; use the HTML page or list the fact as unknown`);
+        continue;
+      }
+      if (line.includes('[иностранный источник]')) continue;
+      const tld = u.hostname.split('.').pop().toLowerCase();
+      const isCountryTld = /^[a-z]{2}$/.test(tld);
+      const tldForeign = isCountryTld && !local.has(tld) && !eu.has(tld);
+      const loc = u.pathname.toLowerCase().match(/^\/([a-z]{2})\/([a-z]{2})(?:\/|$)/);
+      const localeForeign = loc && !ambiguous.has(loc[1]) && !local.has(loc[1]) && !eu.has(loc[1]);
+      if (tldForeign || localeForeign) {
+        add(`foreign source without the «[иностранный источник]» tag: ${label}`);
+      }
+    }
+  }
+}
+
 // ----- price rows need a URL and a retrieval date -----
 if (PRICE_SECTIONS[type]) {
   const rows = section(text, PRICE_SECTIONS[type]).split('\n').filter((l) => l.trim().startsWith('|'));
@@ -243,6 +276,7 @@ if (type === 'final-plan') {
     .split(/^##\s+Источники\s*$/m)[0];
   const shorthand = [
     [/(^|[\s(|])ор\.(?=[\s,;)|]|$)/m, 'the abbreviation «ор.» (write «приблизительно» or say how the price was checked)'],
+    [/по правилам (поиска|исследования|проекта|системы|работы)/i, 'a phrase from the pipeline («по правилам поиска»); say what was or was not done in plain words'],
     [/\b[A-Za-z]_[A-Za-z]{1,2}\b/, 'variable-style notation such as c_L (give the rule in words with real numbers)'],
     [/\b[A-Za-z]\s=\s[A-Za-z0-9(]/, 'a formula with a one-letter variable (give the rule in words with real numbers)'],
   ];

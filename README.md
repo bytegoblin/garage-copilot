@@ -97,6 +97,16 @@ cd mcp/workshop-memory && npm test        # starts the MCP server over stdio and
 node --test scripts/test/*.test.mjs       # state machine, composite commands, artifact checker, hooks, approval, contracts
 ```
 
+## Checking the guard hooks
+
+```text
+/garage-probe-hooks
+```
+
+A scripted developer check: a throw-away run and a subagent attempt five actions that the hooks must block
+or record (a leak in the plan, output without approval, a direct write to the state file, a normal artifact
+write, a memory write for an unapproved run). The result is written to `docs/hook-probe.md`.
+
 ## Measuring token usage
 
 ```bash
