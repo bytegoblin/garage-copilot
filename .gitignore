@@ -1,0 +1,27 @@
+# Personal workshop data (repository is public)
+data/*.db
+data/*.db-journal
+data/*.db-wal
+data/*.db-shm
+!data/.gitkeep
+
+# Artifacts replaced by a re-plan (kept locally for reference)
+workflows/*/artifacts/_superseded-*/
+
+# Secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Claude Code local settings
+.claude/settings.local.json
+
+# Node
+node_modules/
+
+# OS / IDE
+.DS_Store
+.idea/
+.vscode/

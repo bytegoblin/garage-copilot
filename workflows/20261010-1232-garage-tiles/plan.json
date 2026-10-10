@@ -1,0 +1,15 @@
+{
+  "nodes": [
+    {"id": "diy-researcher-substrate", "agent": "diy-researcher", "artifact": "artifacts/research-substrate.md"},
+    {"id": "diy-researcher-bonding", "agent": "diy-researcher", "artifact": "artifacts/research-bonding.md"},
+    {"id": "diy-researcher-safety", "agent": "diy-researcher", "artifact": "artifacts/research-safety.md"},
+    {"id": "project-planner", "agent": "project-planner", "artifact": "artifacts/project-plan.md",
+     "depends_on": ["diy-researcher-substrate", "diy-researcher-bonding", "diy-researcher-safety"]},
+    {"id": "product-researcher-materials", "agent": "product-researcher", "artifact": "artifacts/products-materials.md",
+     "depends_on": ["project-planner"]},
+    {"id": "product-researcher-tools", "agent": "product-researcher", "artifact": "artifacts/products-tools.md",
+     "depends_on": ["project-planner"]},
+    {"id": "cost-planner", "agent": "cost-planner", "artifact": "artifacts/budget.md",
+     "depends_on": ["product-researcher-materials", "product-researcher-tools"]}
+  ]
+}

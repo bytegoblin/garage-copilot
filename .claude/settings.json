@@ -1,0 +1,32 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Write|Edit|MultiEdit|Bash",
+        "hooks": [
+          { "type": "command", "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/approval-gate-guard.sh\"" }
+        ]
+      },
+      {
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [
+          { "type": "command", "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/no-leak-guard.sh\"" }
+        ]
+      },
+      {
+        "matcher": "mcp__workshop-memory__.*",
+        "hooks": [
+          { "type": "command", "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/memory-write-guard.sh\"" }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [
+          { "type": "command", "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/post-write-state.sh\"" }
+        ]
+      }
+    ]
+  }
+}

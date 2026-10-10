@@ -1,0 +1,429 @@
+Workshop Planner / Garage Workshop Copilot
+Идея: AI-система, которая помогает тебе спроектировать, обустроить и постепенно развивать мастерскую, принимая решения по конкретным проектам, инструментам, материалам и бюджету.
+Это намного интереснее для assignment, чем абстрактный «DIY planner», потому что у тебя прямо сейчас есть реальный use case:
+«Я обустраиваю мастерскую, у меня уже есть плитка, я выбираю фрезерный станок. Что делать дальше и что покупать?»
+
+И при этом D естественным образом остаётся внутри:
+«Мне нужно принять решение → исследуй варианты → предложи план → обоснуй его источниками».
+
+Как я представляю MVP
+Команда:
+/workshop
+
+Например:
+/workshop
+
+Я хочу обустроить гараж под мастерскую.
+Сейчас у меня есть напольная плитка.
+Хочу заниматься мебелью.
+Инструментов пока немного.
+Сейчас выбираю фрезерный станок.
+Бюджет на первый этап — €2000.
+
+Coordinator сначала не начинает искать фрезеры.
+Он понимает контекст:
+WORKSHOP CONTEXT
+────────────────────────
+Goal:
+  furniture / woodworking
+
+Current state:
+  garage
+  flooring available
+  limited tools
+
+Current decision:
+  router / milling machine
+
+Budget:
+  €2000
+
+Future needs:
+  unknown → ask user
+
+И задаёт тебе только действительно необходимые вопросы.
+Например:
+Какова площадь гаража?
+Какие размеры деталей ты предполагаешь обрабатывать?
+Планируешь работать с массивом, фанерой, MDF?
+Есть ли уже пылеудаление?
+Есть ли электрическая линия 230V / 400V?
+Нужен ли столярный верстак?
+То есть requirements gathering из задания становится реальным UX, а не формальностью.
+
+А дальше начинается самое интересное
+Coordinator строит execution graph.
+Например:
+---
+                    ┌─ space-planner
+                    │
+requirements ───────┼─ tool-researcher
+                    │
+                    ├─ dust-extraction-researcher
+                    │
+                    ├─ electrical-researcher
+                    │
+                    └─ flooring-researcher
+                              │
+                              ▼
+                         cost-aggregator
+                              │
+                              ▼
+                           validator
+                              │
+                              ▼
+                       workshop-planner
+                              │
+                              ▼
+                       HUMAN APPROVAL
+                              │
+                              ▼
+                        html-builder
+---
+Но самое главное:
+этот graph не захардкожен целиком.
+Если ты спрашиваешь:
+«Какой фрезер купить?»
+
+не нужно запускать flooring agent.
+Coordinator выбирает:
+---
+requirements
+     ↓
+router-researcher
+     ├── product researcher
+     ├── review researcher
+     ├── alternatives researcher
+     └── price researcher
+     ↓
+validator
+     ↓
+decision report
+---
+А если:
+«Как лучше расположить мастерскую?»
+
+будет совершенно другой graph.
+Это очень хорошо демонстрирует ключевое требование задания — dynamic subagent selection.
+
+Я бы сделал 7 основных subagents
+Не надо делать 15 агентов ради количества.
+requirements-formalizer
+Владеет:
+requirements.md
+Отвечает за превращение человеческого запроса в подтверждённые требования.
+workshop-researcher
+Владеет:
+research.md
+Исследует:
+- оборудование;
+- технологии;
+- материалы;
+- практики;
+- реальные ограничения.
+product-researcher
+Владеет:
+products.md
+Например, для твоего текущего вопроса:
+«Какой фрезерный станок мне нужен?»
+
+Он сравнивает конкретные модели.
+layout-planner
+Владеет:
+layout.md
+Например:
+---
+workbench
+router table
+storage
+dust extraction
+assembly area
+walking zones
+---
+cost-planner
+Владеет:
+budget.md
+Собирает стоимость из других artifacts.
+И здесь появляются зависимости:
+---
+product-researcher ─┐
+layout-planner ─────┼──> cost-planner
+material-researcher ┘
+---
+project-planner
+Владеет:
+project-plan.md
+Собирает:
+Phase 1
+Phase 2
+Phase 3
+...
+
+Например:
+1. Prepare floor
+2. Install tiles
+3. Electrical
+4. Dust extraction
+5. Workbench
+6. Tool storage
+7. Router station
+8. Smart-home integration
+
+validator
+Не создаёт новый проект.
+Проверяет artifacts.
+Например:
+✓ every recommendation has source
+✓ budget <= €2000
+✓ no contradictory requirements
+✓ required tools available
+✓ dependencies satisfied
+✓ proposed equipment fits workspace
+✗ router recommendation lacks dust-extraction consideration
+
+И именно здесь можно красиво показать targeted retry.
+
+А теперь самое вкусное — MCP
+Я бы не делал MCP интеграцию искусственной.
+Для твоего проекта очень естественен YouTube MCP.
+Например:
+product-researcher говорит:
+Есть три кандидата.
+
+review-researcher через YouTube ищет:
+- long-term reviews;
+- setup videos;
+- common problems;
+- noise;
+- dust extraction;
+- maintenance;
+- real-world usage.
+А затем artifact содержит:
+Evidence
+
+Product: X
+
+Manufacturer:
+...
+
+Independent reviews:
+...
+
+YouTube:
+...
+
+Recurring complaints:
+...
+
+Confidence:
+Medium
+
+То есть MCP используется для получения evidence, а не просто «у нас подключён MCP, потому что так написано в assignment».
+А Google Drive можно превратить в твою "Workshop Memory"
+Это вообще может стать очень классной частью проекта.
+Допустим, у тебя появляется:
+/workshop-memory
+
+tools/
+materials/
+projects/
+measurements/
+photos/
+receipts/
+manuals/
+
+И workflow может использовать предыдущие решения.
+Например:
+«У меня уже есть Makita X и Festool Y. Какой следующий инструмент мне нужен?»
+
+Agent смотрит твою inventory и понимает:
+Не надо покупать инструмент, который дублирует существующий.
+
+То есть постепенно получается:
+Personal Workshop Knowledge Base
+А не просто одноразовый assignment.
+И здесь появляется очень интересный второй use case
+Ты сказал:
+«Я часто хочу просто разобраться, стоит ли мне что-то покупать».
+
+Поэтому я бы не ограничивал MVP только планированием мастерской.
+Сделал бы две команды:
+/workshop
+
+и
+/decide
+
+Например:
+/decide
+
+Вот этот фрезер:
+https://...
+
+Стоит ли мне его покупать?
+
+Coordinator определяет:
+decision type = product purchase
+context = workshop
+
+и автоматически получает из workshop memory:
+User owns:
+- ...
+- ...
+- ...
+
+Current projects:
+- ...
+
+Budget:
+- ...
+
+Skill level:
+- ...
+
+И исследование становится персональным, а не generic Amazon review summary.
+Это уже можно превратить в настоящий продукт
+Условно:
+Workshop Copilot
+Your AI co-pilot for building and improving your workshop.
+
+Он знает:
+- твою мастерскую;
+- инструменты;
+- проекты;
+- бюджет;
+- предпочтения;
+- предыдущие покупки;
+- размеры;
+- материалы.
+И помогает принимать решения:
+Что купить?
+
+Что построить?
+
+Как расположить?
+
+Что делать следующим?
+
+Какой инструмент нужен?
+
+Можно ли сделать это самому?
+
+Сколько это будет стоить?
+---
+
+Как это будет выглядеть для тебя
+Ты находишься в репозитории проекта и запускаешь:
+/diy
+
+или, например:
+/diy Я хочу обустроить гараж под мастерскую. Сейчас выбираю фрезерный станок...
+
+Дальше ты разговариваешь не с каждым агентом, а только с coordinator.
+Примерно так:
+
+                    YOU
+                     │
+                     ▼
+            ┌─────────────────┐
+            │ DIY Coordinator │
+            └────────┬────────┘
+                     │
+          анализирует задачу
+                     │
+              ┌──────┴──────┐
+              │             │
+       нужны уточнения?     нет
+              │             │
+              ▼             ▼
+          ASK USER       PLAN
+                            │
+                ┌───────────┼───────────┐
+                ▼           ▼           ▼
+             Research     Design      Cost
+                │           │           │
+                └───────────┼───────────┘
+                            ▼
+                         Validator
+                            │
+                     ┌──────┴──────┐
+                     │             │
+                   FAIL           PASS
+                     │             │
+               retry agents       ▼
+                              Synthesis
+                                  │
+                                  ▼
+                           Human approval
+                                  │
+                         ┌────────┴────────┐
+                         │                 │
+                      REJECT             APPROVE
+                         │                 │
+                       revise              ▼
+                                      HTML/MD
+---
+Где здесь код?
+В репозитории будет примерно такая структура:
+```
+diy-copilot/
+│
+├── CLAUDE.md
+├── README.md
+│
+├── .claude/
+│   ├── commands/
+│   │   └── diy.md
+│   │
+│   ├── agents/
+│   │   ├── requirements-formalizer.md
+│   │   ├── diy-researcher.md
+│   │   ├── product-researcher.md
+│   │   ├── project-planner.md
+│   │   ├── cost-planner.md
+│   │   ├── evidence-validator.md
+│   │   └── synthesizer.md
+│   │
+│   ├── skills/
+│   │   ├── artifact-validator/
+│   │   └── research-evidence/
+│   │
+│   ├── hooks/
+│   │   ├── approval-gate-guard.sh
+│   │   ├── no-leak-guard.sh
+│   │   └── post-write-state.sh
+│   │
+│   └── settings.json
+│
+├── mcp/
+│   └── ...
+│
+├── workflows/
+│   ├── run-001/
+│   ├── run-002/
+│   └── run-003/
+│
+└── output/
+```
+---
+```
+Coordinator — сердце системы
+Например, diy.md будет описывать поведение coordinator.
+Его задача:
+не решать DIY-задачу самому.
+
+Он должен:
+1. получить запрос;
+2. понять тип задачи;
+3. собрать недостающие требования;
+4. сформировать execution plan;
+5. выбрать subagents;
+6. запустить независимых агентов параллельно;
+7. дождаться зависимостей;
+8. запускать следующие;
+9. проверять quality gates;
+10. при ошибке перезапустить только необходимые части;
+11. сохранять state;
+12. запросить human approval;
+13. после approval создать финальный результат.
+Это очень важный архитектурный принцип.
+```

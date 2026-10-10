@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "workshop-memory": {
+      "command": "node",
+      "args": ["mcp/workshop-memory/server.mjs"],
+      "env": {
+        "GARAGE_DB": "${GARAGE_DB:-data/garage.db}"
+      }
+    }
+  }
+}

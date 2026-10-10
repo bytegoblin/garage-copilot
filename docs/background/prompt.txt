@@ -1,0 +1,589 @@
+# DIY Assistant — Step 1: Repository Analysis and Architecture
+
+You are the lead architect for a new Claude Code project called **DIY Assistant**.
+
+We are going to build this project incrementally, step by step.
+
+**Do not implement the complete application yet.**
+
+Your task in this step is to inspect the current repository, understand the available Claude Code capabilities, and design the foundation of the system.
+
+Do not create the full set of agents, hooks, skills, MCP integrations, workflows, or final outputs yet.
+
+## Product Vision
+
+DIY Assistant will eventually be a reliable agentic workflow for helping a user research, plan, and execute DIY projects.
+
+The initial domain is a personal home workshop, but the architecture should later support:
+
+- home improvement;
+- furniture building;
+- smart-home projects;
+- automotive DIY;
+- repairs;
+- tool and equipment selection;
+- material selection;
+- other practical DIY projects.
+
+The user will interact with the system in natural language through a Claude Code slash command such as:
+
+```text
+/diy Помоги спланировать обустройство моего гаража под столярную мастерскую.
+```
+
+The user communicates primarily in Russian.
+
+## Language
+
+The coordinator and all user-facing communication must be in Russian unless the user explicitly requests another language.
+
+Human-readable artifacts should normally be written in Russian.
+
+Keep the following in English:
+
+- code;
+- filenames;
+- directory names;
+- agent names;
+- skill names;
+- hook names;
+- configuration keys;
+- JSON property names;
+- technical identifiers;
+- slash-command names.
+
+External research may use both Russian and English sources.
+
+Do not unnecessarily translate product names, model numbers, manufacturer names, technical standards, URLs, or official terminology.
+
+---
+
+# Step 1 Objectives
+
+In this step, do the following:
+
+1. Inspect the current repository.
+2. Inspect existing Claude Code configuration and conventions.
+3. Determine which Claude Code features are available and relevant.
+4. Determine how the future DIY Assistant should be structured.
+5. Define the initial architecture.
+6. Define the boundaries between coordinator, subagents, skills, hooks, MCP, artifacts, and persisted state.
+7. Define the contracts that future implementation steps should follow.
+8. Identify important architectural risks and ambiguities.
+9. Produce a concrete implementation roadmap for subsequent steps.
+
+Do not implement the complete system yet.
+
+Do not create placeholder implementations merely to make the repository look complete.
+
+---
+
+# Architecture Requirements
+
+The eventual system must use a model-driven hub-and-spoke architecture.
+
+The future architecture will contain:
+
+```text
+User
+  |
+  v
+DIY Coordinator
+  |
+  +---- specialized subagents
+  |
+  +---- reusable skills
+  |
+  +---- MCP
+  |
+  +---- quality gates
+  |
+  +---- persisted workflow state
+  |
+  +---- human approval
+  |
+  v
+Final Output
+```
+
+The coordinator will eventually be responsible for:
+
+- understanding the request;
+- gathering missing requirements;
+- confirming requirements;
+- creating an execution plan;
+- dynamically selecting subagents;
+- determining dependencies;
+- running independent work in parallel;
+- running dependent work sequentially;
+- validating artifacts;
+- handling targeted retries;
+- persisting workflow state;
+- resuming interrupted workflows;
+- requesting explicit human approval;
+- handling rejected results;
+- triggering final output generation only after approval.
+
+The coordinator must not become a general-purpose DIY researcher itself.
+
+Specialized work should eventually belong to specialized subagents.
+
+---
+
+# Initial Use Cases
+
+The future MVP should support at least these categories:
+
+## 1. Product / Tool Decision
+
+Example:
+
+```text
+/diy Стоит ли мне покупать этот фрезерный станок для мастерской?
+```
+
+## 2. Workshop Planning
+
+Example:
+
+```text
+/diy Помоги спланировать первый этап обустройства моего гаража под столярную мастерскую.
+```
+
+## 3. DIY Project Planning
+
+Example:
+
+```text
+/diy У меня уже куплена напольная плитка для мастерской. Помоги спланировать проект укладки пола.
+```
+
+These are examples of different workflow types.
+
+The architecture must allow the coordinator to dynamically select only the agents required for the current task.
+
+Do not design one fixed pipeline that runs every agent for every request.
+
+---
+
+# Future Agent Model
+
+Do not implement these agents yet.
+
+Instead, define their responsibilities and contracts in the architecture.
+
+The initial conceptual agents are:
+
+- `requirements-formalizer`
+- `diy-researcher`
+- `product-researcher`
+- `project-planner`
+- `cost-planner`
+- `evidence-validator`
+- `synthesizer`
+- `final-output-builder`
+
+For each agent, define:
+
+- responsibility;
+- inputs;
+- outputs;
+- owned artifacts;
+- dependencies;
+- what the agent must not do.
+
+The architecture should make it possible to add new specialized agents later without changing the fundamental coordinator design.
+
+---
+
+# Artifact Model
+
+Workflow artifacts should be human-readable Markdown files.
+
+Do not use JSON as the primary format for agent-to-agent artifacts.
+
+Use JSON primarily for machine-readable workflow state.
+
+Agents should communicate primarily through persisted artifacts rather than copying large amounts of previous-agent output into prompts.
+
+Each artifact must have one clear owner.
+
+Future artifacts may include:
+
+```text
+requirements.md
+research.md
+products.md
+project-plan.md
+budget.md
+validation.md
+final-plan.md
+```
+
+Define the artifact lifecycle conceptually:
+
+```text
+created
+    |
+    v
+validated
+    |
+    v
+available to dependents
+```
+
+A failed artifact must not be treated as valid input for downstream work.
+
+---
+
+# Workflow State
+
+The eventual workflow must persist execution state.
+
+Conceptually:
+
+```text
+workflows/<run-id>/workflow-state.json
+```
+
+Define what information the state must contain.
+
+At minimum consider:
+
+- run ID;
+- original request;
+- workflow type;
+- confirmed requirements;
+- selected agents;
+- execution plan;
+- dependencies;
+- completed work;
+- failed work;
+- retry counters;
+- artifact paths;
+- artifact validity;
+- validation results;
+- approval status;
+- approval feedback;
+- final output status.
+
+The architecture must support resuming an interrupted workflow without unnecessarily repeating completed valid work.
+
+---
+
+# Quality Gates
+
+Define the architecture for explicit quality gates.
+
+At minimum, future validation should cover:
+
+- confirmed requirements are addressed;
+- important factual claims have sources;
+- recommendations are traceable to requirements;
+- current prices are sourced;
+- budget constraints are respected;
+- artifacts are structurally valid;
+- artifacts do not contain unsupported invented facts;
+- important uncertainties are explicit;
+- downstream dependencies are satisfied.
+
+Define how a failed gate should map back to the responsible artifact and agent.
+
+The future system must support targeted retries rather than restarting the entire workflow.
+
+Maximum retry count should be configurable, with an initial default of 3.
+
+---
+
+# Human Approval
+
+The eventual workflow must require explicit human approval before final output generation.
+
+Approval must be deterministic and represented in persisted workflow state.
+
+The architecture should support states such as:
+
+```text
+awaiting_approval
+approved
+rejected
+```
+
+Approval must never be inferred from ambiguous conversation text.
+
+A rejected result must be capable of entering a revision loop.
+
+---
+
+# Hooks
+
+The eventual implementation must contain both:
+
+## PreToolUse
+
+At minimum:
+
+- `approval-gate-guard`
+- `no-leak-guard`
+
+## PostToolUse
+
+At minimum:
+
+- `post-write-state`
+
+Do not implement the hooks yet.
+
+Instead, define:
+
+- what event each hook observes;
+- what invariant it protects;
+- what data it needs;
+- what it should block or update;
+- how it interacts with persisted state.
+
+---
+
+# Skills
+
+The eventual implementation must contain at least two reusable skills.
+
+Initial candidates:
+
+## `artifact-validator`
+
+Reusable validation logic for workflow artifacts.
+
+## `research-evidence`
+
+Reusable rules for external research, source quality, citations, uncertainty, and evidence handling.
+
+Do not implement these skills yet.
+
+Define their responsibilities and interfaces.
+
+---
+
+# MCP
+
+MCP must eventually be used as a real architectural capability.
+
+Do not select an MCP server merely because the assignment requires one.
+
+First identify what external capability the DIY Assistant actually needs.
+
+Then determine whether an existing community MCP server provides that capability.
+
+Potential categories include:
+
+- product/research information;
+- YouTube or practical DIY content;
+- access to the user's workshop/project knowledge;
+- another external information source directly relevant to DIY tasks.
+
+Do not choose the specific MCP server yet unless repository inspection reveals an obvious existing integration.
+
+Instead:
+
+1. identify likely MCP use cases;
+2. identify candidate MCP capabilities;
+3. explain which agent would use each capability;
+4. explain what artifact would consume the result;
+5. identify any credentials or configuration requirements;
+6. recommend the most appropriate MCP approach for the next implementation step.
+
+If no suitable community MCP exists, a small custom MCP server may be considered later.
+
+---
+
+# Security
+
+The eventual project must never commit:
+
+- API keys;
+- MCP credentials;
+- access tokens;
+- passwords;
+- personal secrets.
+
+Identify what secrets may eventually be required and how they should be configured.
+
+Ensure the architecture includes an appropriate `.gitignore` strategy.
+
+---
+
+# Repository Inspection
+
+Before making architectural decisions:
+
+1. inspect the complete current repository structure;
+2. inspect existing `CLAUDE.md`, if present;
+3. inspect `.claude/`, if present;
+4. inspect existing commands, agents, skills, hooks, and configuration;
+5. inspect existing scripts and dependencies;
+6. inspect Git configuration and `.gitignore`;
+7. identify existing MCP configuration;
+8. identify anything that should be preserved rather than replaced.
+
+Do not assume that the repository is empty.
+
+Do not overwrite existing project files without understanding their purpose.
+
+---
+
+# Deliverables for This Step
+
+At the end of this step, produce the following:
+
+## 1. Architecture proposal
+
+Explain:
+
+- major components;
+- responsibilities;
+- interactions;
+- execution lifecycle.
+
+## 2. Component contracts
+
+Define the contracts for:
+
+- coordinator;
+- subagents;
+- artifacts;
+- skills;
+- hooks;
+- MCP;
+- workflow state;
+- human approval.
+
+## 3. Initial execution model
+
+Show how a request moves through:
+
+```text
+request
+  ↓
+requirements
+  ↓
+planning
+  ↓
+dynamic agent selection
+  ↓
+execution
+  ↓
+validation
+  ↓
+targeted retry if necessary
+  ↓
+synthesis
+  ↓
+human approval
+  ↓
+final output
+```
+
+## 4. Example execution graphs
+
+Show at least three example graphs:
+
+- product/tool decision;
+- workshop planning;
+- DIY project planning.
+
+Clearly identify which nodes can run in parallel and which depend on previous nodes.
+
+## 5. Repository structure
+
+Propose the exact repository structure for the project.
+
+Do not create the complete structure yet unless required by existing repository conventions.
+
+## 6. MCP analysis
+
+Identify realistic MCP options and recommend what should be investigated or implemented next.
+
+Do not add an unrelated MCP just to satisfy the assignment.
+
+## 7. Implementation roadmap
+
+Break the project into small sequential implementation steps.
+
+For example:
+
+```text
+Step 1 — Architecture and contracts
+Step 2 — Coordinator and /diy command
+Step 3 — Requirements formalization
+Step 4 — First research agent
+Step 5 — Artifact validation skill
+Step 6 — Additional agents
+Step 7 — Dynamic execution
+Step 8 — Workflow persistence
+Step 9 — Hooks
+Step 10 — MCP
+Step 11 — Human approval
+Step 12 — Final HTML output
+Step 13 — Failure/retry testing
+Step 14 — Demonstration runs
+```
+
+Adjust this roadmap based on the actual repository and Claude Code capabilities.
+
+## 8. Assignment traceability
+
+Create a table mapping each assignment requirement to:
+
+- planned implementation component;
+- planned test;
+- current status.
+
+Do not claim an item is implemented if it has only been designed.
+
+---
+
+# Important Constraints
+
+Do not:
+
+- implement the entire project in this step;
+- create fake MCP integrations;
+- fabricate MCP capabilities;
+- fabricate external research;
+- create placeholder agents solely to satisfy the assignment;
+- add unnecessary infrastructure;
+- introduce a database unless there is a demonstrated need;
+- introduce a web frontend;
+- add authentication;
+- over-engineer the system;
+- silently make important architectural decisions that contradict the requirements.
+
+Prefer:
+
+- native Claude Code capabilities;
+- simple Markdown artifacts;
+- small deterministic scripts;
+- explicit state;
+- narrow agent responsibilities;
+- clear contracts;
+- minimal dependencies;
+- incremental implementation.
+
+---
+
+# Final Instruction
+
+Inspect the repository first.
+
+Then produce the architecture and implementation plan described above.
+
+**Do not begin implementing the complete DIY Assistant yet.**
+
+At the end, clearly state:
+
+1. what you inspected;
+2. what you discovered;
+3. the proposed architecture;
+4. the recommended next implementation step.
+
+All communication with the user must be in Russian.
