@@ -1,0 +1,237 @@
+{
+  "schema_version": 1,
+  "run_id": "20261010-2340-bosch-gas15ps-dust-extraction",
+  "created_at": "2026-10-10T21:40:32.604Z",
+  "updated_at": "2026-10-10T22:15:39.329Z",
+  "status": "completed",
+  "workflow_type": "purchase-decision",
+  "request_file": "request.md",
+  "requirements": {
+    "confirmed": true,
+    "confirmed_at": "2026-10-10T21:48:13.503Z",
+    "artifact_sha256": "1353bb266d4b72f387d08d1381c499e2334ef595c7500434c4aad04f5cd0ba65"
+  },
+  "config": {
+    "max_retries": 3
+  },
+  "plan": {
+    "nodes": [
+      {
+        "id": "requirements-formalizer",
+        "agent": "requirements-formalizer",
+        "artifact": "artifacts/requirements.md",
+        "depends_on": [],
+        "gate": null,
+        "status": "validated",
+        "attempts": 1,
+        "retries": 0,
+        "artifact_sha256": "1353bb266d4b72f387d08d1381c499e2334ef595c7500434c4aad04f5cd0ba65",
+        "stage_gate": {
+          "result": "pass",
+          "at": "2026-10-10T21:48:13.503Z"
+        },
+        "last_error": null
+      },
+      {
+        "id": "diy-researcher",
+        "agent": "diy-researcher",
+        "artifact": "artifacts/research.md",
+        "depends_on": [
+          "requirements-formalizer"
+        ],
+        "gate": null,
+        "status": "validated",
+        "attempts": 3,
+        "retries": 2,
+        "artifact_sha256": "6138b4b27ddfa7fa04990cdd8ceb6d28e7d73ab52b6bc9991f6a3f1a7f628bd2",
+        "stage_gate": {
+          "result": "pass",
+          "at": "2026-10-10T22:01:46.575Z"
+        },
+        "last_error": null,
+        "started_at": "2026-10-10T22:01:10.606Z"
+      },
+      {
+        "id": "product-researcher",
+        "agent": "product-researcher",
+        "artifact": "artifacts/products.md",
+        "depends_on": [
+          "requirements-formalizer"
+        ],
+        "gate": null,
+        "status": "validated",
+        "attempts": 2,
+        "retries": 1,
+        "artifact_sha256": "eaeaf44cf64ba06c3ee1e704562e1176587f70dc40e94c78d78f263c4c968bd8",
+        "stage_gate": {
+          "result": "pass",
+          "at": "2026-10-10T21:57:30.705Z"
+        },
+        "last_error": null,
+        "started_at": "2026-10-10T21:55:44.975Z"
+      },
+      {
+        "id": "cost-planner",
+        "agent": "cost-planner",
+        "artifact": "artifacts/budget.md",
+        "depends_on": [
+          "diy-researcher",
+          "product-researcher"
+        ],
+        "gate": null,
+        "status": "validated",
+        "attempts": 4,
+        "retries": 1,
+        "artifact_sha256": "a80f3dcf11ab7fc1f48b1d410cde0d8718fdebdac4906865d5eb1482abf4f0a3",
+        "stage_gate": {
+          "result": "pass",
+          "at": "2026-10-10T22:04:50.725Z"
+        },
+        "last_error": null,
+        "started_at": "2026-10-10T22:04:13.925Z"
+      },
+      {
+        "id": "evidence-validator",
+        "agent": "evidence-validator",
+        "artifact": "artifacts/validation.md",
+        "depends_on": [
+          "cost-planner"
+        ],
+        "gate": null,
+        "status": "validated",
+        "attempts": 4,
+        "retries": 0,
+        "artifact_sha256": "e58697b6cf9b1cc58d66bc608cb60c0ea8e55b32f96014c29c6eb689f80a7d45",
+        "stage_gate": {
+          "result": "pass",
+          "at": "2026-10-10T22:06:20.259Z"
+        },
+        "last_error": null,
+        "started_at": "2026-10-10T22:04:50.805Z"
+      },
+      {
+        "id": "synthesizer",
+        "agent": "synthesizer",
+        "artifact": "artifacts/final-plan.md",
+        "depends_on": [
+          "evidence-validator"
+        ],
+        "gate": null,
+        "status": "validated",
+        "attempts": 1,
+        "retries": 0,
+        "artifact_sha256": "0d8cf31d1c5e780bc62b57d9700b903983943d2e06f1082b5d6cdf970e298feb",
+        "stage_gate": {
+          "result": "pass",
+          "at": "2026-10-10T22:09:32.748Z"
+        },
+        "last_error": null,
+        "started_at": "2026-10-10T22:06:20.382Z"
+      },
+      {
+        "id": "final-output-builder",
+        "agent": "final-output-builder",
+        "artifact": "output/garage-plan.html",
+        "depends_on": [
+          "synthesizer"
+        ],
+        "gate": "approval",
+        "status": "validated",
+        "attempts": 1,
+        "retries": 0,
+        "artifact_sha256": "dfaa48cdafb3ce64b63a2886bc1845ee826c430b2d006b5b410066a4a24ba15f",
+        "stage_gate": {
+          "result": "pass",
+          "at": "2026-10-10T22:15:32.426Z"
+        },
+        "last_error": null,
+        "started_at": "2026-10-10T22:15:19.590Z"
+      }
+    ]
+  },
+  "domain_gates": {
+    "attempt": 4,
+    "results": [
+      {
+        "gate": "G1",
+        "status": "PASS",
+        "artifact": "—",
+        "node": "—",
+        "finding": "Цены несут магазин, URL и дату 2026-10-10; цены по сниппетам помечены «ориентировочно»; иностранных источников по два на артефакт, все с тегом. Выборочно открыто 5 страниц: Bosch PL GAS 15 PS (818,00 zł, 53 л/с, 270 мбар, 10 л нетто, класс и розетка не названы), Morele GAS 15 PS (588,28 zł, класс «Brak data», розетка есть), Jula DeWalt DXVCS003 (299 zł, 38 л, вход 48 мм), Morele Makita VC3011L (963,95 zł, класс L, шланг 32 мм, розетка 2600 Вт), Bosch BE шланг 35 мм (GAS 15 PS в списке совместимости). Все совпали. Утверждения без источника (порог 18–20 м/с, статика, взрыв пыли) честно помечены как «без источника».",
+        "fix": "—"
+      },
+      {
+        "gate": "G2",
+        "status": "PASS",
+        "artifact": "—",
+        "node": "—",
+        "finding": "Пересчитано: (818,00 + 588,28) / 2 = 703,14; 703,14 + 299,00 = 1002,14; резерв 10 % = 100,21; итог 1102,35. Края: 1117,00 / 1228,70 и 887,28 / 976,01 верны. Разницы между вариантами (145,95; 260,81; 1515,87; 550,00) верны. Количества 1 и 1 совпадают с products.md. Позиции без цены (трубы, шланги, заслонки, автомат-розетка, мешки, фильтры) перечислены, а не потеряны. Потолка бюджета нет.",
+        "fix": "—"
+      },
+      {
+        "gate": "G3",
+        "status": "PASS",
+        "artifact": "—",
+        "node": "—",
+        "finding": "check_owned: пылесос-стружкоотсос, циклон, трубы, заслонки, шланги и автомат-розетка в базе отсутствуют; рекомендаций того, что уже есть, нет. Штуцеры и переходники не покупаются (3D-принтер есть, решение мастера). Имеющийся строительный пылесос рассмотрен как вариант за циклоном.",
+        "fix": "—"
+      },
+      {
+        "gate": "G4",
+        "status": "PASS",
+        "artifact": "—",
+        "node": "—",
+        "finding": "Электрика: 1100 Вт плюс 1600 Вт ≈ 11,7 А, плюс 2000 Вт ≈ 13,5 А при линии 16 А, пересчитано верно, пусковые токи названы неизвестными. Несовпадение входа циклона 48 мм и шланга 35 мм отмечено, переходник печатает мастер. Диаметры штуцеров HS7611 и GOF 20-12 не найдены, дана процедура замера, что соответствует решению мастера. Пила HS7601 и фрезер POF 1200 AE не рассматриваются по поправке.",
+        "fix": "—"
+      },
+      {
+        "gate": "G5",
+        "status": "PASS",
+        "artifact": "—",
+        "node": "—",
+        "finding": "В research.md закрыты: пыль бука и класс, респиратор, защита слуха, нагрузка линии, антистатические и заземлённые трубы, статика, пылевой взрыв, пустой бак, закрепление заготовок. Плана работ в этой задаче нет (purchase-decision), переносить в шаги нечего. Часть пунктов без источника, это помечено и вынесено в проверку по нормам BHP.",
+        "fix": "—"
+      },
+      {
+        "gate": "G6",
+        "status": "PASS",
+        "artifact": "—",
+        "node": "—",
+        "finding": "Все must закрыты или честно объявлены частично с причиной: R2 (перегрев не найден), R3 (длина трассы неизвестна, условный расчёт), R4 (шланг 35 мм по источнику, штуцеры инструментов не найдены, процедура замера), R5, R6, R7 (Makita VC3011L, Starmix, циклоны, разница в цене), R8. Should R9–R13 покрыты или объявлены не найденными с причиной: трубы, заслонки и шланги без цены, R12 расходники не найдены. Could R14 не обязателен.",
+        "fix": "—"
+      },
+      {
+        "gate": "G7",
+        "status": "PASS",
+        "artifact": "—",
+        "node": "—",
+        "finding": "Названы: класс пыли GAS 15 PS не подтверждён, розетка автозапуска не подтверждена, расхождение цены Morele и Bosch, одна ссылка для класса M у бука, максимум турбины против реального потока, мощности инструментов из иностранных магазинов, неизвестная модель имеющегося пылесоса. Собственные расчёты помечены как расчёт автора.",
+        "fix": "—"
+      }
+    ],
+    "result": "pass",
+    "processed_sha256": "e58697b6cf9b1cc58d66bc608cb60c0ea8e55b32f96014c29c6eb689f80a7d45"
+  },
+  "approval": {
+    "status": "approved",
+    "round": 1,
+    "history": [
+      {
+        "round": 1,
+        "decision": "approved",
+        "at": "2026-10-10T22:15:15.564Z",
+        "final_plan_sha256": "0d8cf31d1c5e780bc62b57d9700b903983943d2e06f1082b5d6cdf970e298feb",
+        "feedback": null
+      }
+    ],
+    "pending_sha256": "0d8cf31d1c5e780bc62b57d9700b903983943d2e06f1082b5d6cdf970e298feb"
+  },
+  "memory_writeback": {
+    "status": "done",
+    "at": "2026-10-10T22:15:39.288Z"
+  },
+  "final_output": {
+    "status": "done",
+    "path": "output/garage-plan.html"
+  }
+}

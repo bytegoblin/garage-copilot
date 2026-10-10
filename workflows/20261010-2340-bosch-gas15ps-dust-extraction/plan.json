@@ -1,0 +1,14 @@
+{
+  "nodes": [
+    {"id": "diy-researcher", "agent": "diy-researcher", "artifact": "artifacts/research.md"},
+    {"id": "product-researcher", "agent": "product-researcher", "artifact": "artifacts/products.md"},
+    {"id": "cost-planner", "agent": "cost-planner", "artifact": "artifacts/budget.md",
+     "depends_on": ["diy-researcher", "product-researcher"]},
+    {"id": "evidence-validator", "agent": "evidence-validator", "artifact": "artifacts/validation.md",
+     "depends_on": ["cost-planner"]},
+    {"id": "synthesizer", "agent": "synthesizer", "artifact": "artifacts/final-plan.md",
+     "depends_on": ["evidence-validator"]},
+    {"id": "final-output-builder", "agent": "final-output-builder", "artifact": "output/garage-plan.html",
+     "depends_on": ["synthesizer"], "gate": "approval"}
+  ]
+}
