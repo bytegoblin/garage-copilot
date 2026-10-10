@@ -27,8 +27,8 @@ If the content of the `artifact-validator` skill is not already in your context,
    Make the point at which the plan must pause or move to the fallback explicit.
 3. List tools: what the master already owns (confirm via `check_owned`) and what is missing, per phase need.
    Flag owned tools that are unsuitable and why (taking their specs from the inventory).
-4. Calculate material quantities with the arithmetic shown (area, waste factor, consumption rates from
-   `research.md`). Mark what is already owned and how much of it.
+4. Calculate material quantities with the arithmetic shown (dimensions, waste or offcut allowance, and
+   consumption or yield rates from `research.md` where a product has them). Mark what is already owned and how much of it.
 5. Tie everything to requirement IDs in `Покрытие требований`. Respect electrical limits and
    one-person constraints from the requirements.
 

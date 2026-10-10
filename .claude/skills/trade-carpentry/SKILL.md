@@ -9,6 +9,21 @@ Use for any task that builds or mounts furniture or woodwork. It tells a researc
 where to confirm it**. It deliberately contains no technical values: every number, class or limit in the
 artifact must come from a source opened during this run (`research-evidence`).
 
+## Questions for the master (requirements stage)
+
+Used by the requirements step. Ask only what the request, the profile and the inventory do not already
+answer, at most three at a time, each with a proposed default. They are questions, not facts.
+
+- What exactly is being made and what must it carry or do: the kind and approximate weight of the load
+  (books, tools, clothes), the number of shelves or compartments?
+- Size and place: length, depth, height, where it goes, and anything it must fit around.
+- The wall or base it is fixed to: material and condition (concrete, brick, hollow block, plasterboard,
+  timber studs, tiled), and whether cables or pipes may run behind it?
+- Look and material: solid wood, plywood or board material, finish, visible or hidden fixings, any
+  boards or hardware already owned?
+- Tools and help: which of the owned tools are to be used, is a panel-cutting service available?
+- Budget limit, time frame, and whether a ready-made equivalent is an acceptable comparison.
+
 ## Recommended research split
 
 | Slug | Scope |

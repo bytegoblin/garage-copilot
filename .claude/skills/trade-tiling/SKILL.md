@@ -9,6 +9,21 @@ Use for any task that involves laying tiles or similar rigid floor/wall covering
 **what to find out and where to confirm it**. It deliberately contains no technical values: every number,
 class, time or limit in the artifact must come from a source opened during this run (`research-evidence`).
 
+## Questions for the master (requirements stage)
+
+Used by the requirements step. Ask only what the request, the profile and the inventory do not already
+answer, at most three at a time, each with a proposed default. They are questions, not facts.
+
+- What is the base: material, age, condition (dusting, cracks, level differences), any known dampness or
+  underfloor heating?
+- The tile: type, format, thickness if known, rectified or not, how much is already owned versus the area
+  to cover (including the threshold and niches)?
+- The room: area and rough dimensions, door thresholds, drains or slopes; how the floor is used after
+  (traffic, vehicle, water, frost, de-icing salt)?
+- Conditions and window: is the room heated, by when must it be done, is there a hard temperature rule?
+- Help and tools: one person or two, which tiling tools are owned, is a leveling system wanted?
+- Budget limit and the attitude to renting a tool or buying it.
+
 ## Recommended research split
 
 When the coordinator splits the research into parallel nodes, use these topics (slug → artifact):

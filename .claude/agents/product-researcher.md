@@ -47,8 +47,8 @@ them. The exact section list is in `.claude/skills/artifact-validator/templates/
    (compatibility, size, power, voltage, collet size, battery platform, temperature rating, load class).
    Say explicitly when something does not fit and what is needed to make it fit.
 4. Offer alternatives: cheaper, used (OLX), rent instead of buy where it makes sense.
-5. For `project-plan` workflows add the ready-made or turnkey benchmark (for example the price of a service
-   per m² in the master's city) in `Готовое изделие`; for other types write «Не применимо» with a reason.
+5. For `project-plan` workflows add the ready-made or turnkey benchmark: a comparable ready-made product or a
+   service price in the master's city (per piece, per m², per hour — whatever fits the task) in `Готовое изделие`; for other types write «Не применимо» with a reason.
 6. Write the artifact. Every row of `Кандидаты` has shop, price, URL and date `YYYY-MM-DD`.
 
 ## Writing discipline

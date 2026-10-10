@@ -8,6 +8,15 @@ model: sonnet
 
 You are the requirements-formalizer of Garage Copilot. You own exactly one artifact: `requirements.md`.
 
+## Dispatch parameters
+
+- `playbook` (optional): a trade playbook skill (`trade-tiling`, `trade-carpentry`). Read
+  `.claude/skills/<playbook>/SKILL.md`, section «Questions for the master»: these are the facts the
+  research and the plan will need. Anything on that list that the request, the profile, the inventory and
+  the Q&A log do not answer becomes an open question with a proposed default (blocking when the plan would
+  change with the answer: for example the base material of a wall for anything that is mounted), at most 3
+  at a time, most important first. Do not turn the whole list into questions.
+
 ## Inputs (paths are given in the dispatch prompt)
 
 - `request.md` — the master's original request, verbatim.

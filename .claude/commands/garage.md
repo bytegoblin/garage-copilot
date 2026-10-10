@@ -57,11 +57,16 @@ If `$ARGUMENTS` starts with `resume`:
 
 ## Phase 2 — Requirements
 
+First choose the **trade playbook** from the request (`config/workflow.json` → `playbooks`): tiling or
+floor covering → `trade-tiling`; furniture, shelves, cabinets, mounted woodwork → `trade-carpentry`; none
+fits → no playbook. Remember it for the whole run.
+
 Loop (at most 5 rounds):
 
 1. Dispatch the `requirements-formalizer` subagent. Prompt must contain: run id, path of `request.md`,
    path of `qa-log.md`, output path `workflows/<run-id>/artifacts/requirements.md`, the round number,
-   and the answers to previous questions if any. Do not paste profile data; the agent reads it via MCP.
+   the `playbook` name if any, and the answers to previous questions if any. Do not paste profile data;
+   the agent reads it via MCP.
 2. Run `node scripts/check-artifact.mjs workflows/<run-id>/artifacts/requirements.md`. On `FAIL` re-dispatch
    the formalizer once per round with the findings quoted. Do not edit the file yourself.
 3. Read `requirements.md`. If `status: needs-answers`, ask the master the open questions (max 3 at a time,
@@ -83,17 +88,22 @@ nodes below are always present.
 Settings (read once with `Read config/workflow.json`): `research_depth` (hard search/fetch limits per
 level) and `playbooks` (trade → playbook skill).
 
-**Trade playbook.** If the task is tiling or floor covering → `trade-tiling`; furniture, shelves, cabinets,
-mounted woodwork → `trade-carpentry`. Pass the playbook name to the researchers. No matching playbook →
-none (the researcher works from the requirements alone).
+**Trade playbook.** The one chosen in Phase 2 (none → the researcher works from the requirements alone).
+Pass its name to the researchers.
+
+**Project size.** Judge it from the confirmed requirements. A `project-plan` is **small** when it is one
+item, one trade, one person, roughly a day of work and at most about a dozen distinct things to buy (a
+hanging shelf, a single repair). Otherwise it is **regular** (flooring of a room, a wardrobe, a workshop
+stage). Say in one plain sentence which path you chose and why.
 
 Selection rules:
 
 | Situation | Nodes |
 |---|---|
-| `project-plan` with a playbook | research split by the playbook's "Recommended research split": one `diy-researcher-<slug>` node per topic (artifact `artifacts/research-<slug>.md`), all in parallel, depth `quick` each; then `project-planner` depending on **all** of them → product research (next row) → `cost-planner` |
-| `project-plan` without a playbook | single `diy-researcher` (depth `standard`) → `project-planner` → product research (next row) → `cost-planner` |
-| `project-plan`, product research (default) | **three parallel product nodes**, all depending on `project-planner`: `product-researcher-materials` (`artifacts/products-materials.md`; main materials and hardware), `product-researcher-tools` (`artifacts/products-tools.md`; tools and equipment), `product-researcher-ppe` (`artifacts/products-ppe.md`; protective equipment and small consumables), each depth `quick`; `cost-planner` depends on all three. Drop a category node only if the task clearly has nothing in it (e.g. no tools to buy because all are owned) |
+| **small** `project-plan` | one `diy-researcher` (depth `standard`; the playbook's whole checklist, all its topics) → `project-planner` → **one** `product-researcher` (depth `standard`, artifact `artifacts/products.md`, covering materials, hardware, tools and protective equipment) → `cost-planner` |
+| **regular** `project-plan` with a playbook | research split by the playbook's "Recommended research split": one `diy-researcher-<slug>` node per topic (artifact `artifacts/research-<slug>.md`), all in parallel, depth `quick` each; then `project-planner` depending on **all** of them → product research (next row) → `cost-planner` |
+| **regular** `project-plan` without a playbook | single `diy-researcher` (depth `standard`) → `project-planner` → product research (next row) → `cost-planner` |
+| **regular** `project-plan`, product research | **three parallel product nodes**, all depending on `project-planner`: `product-researcher-materials` (`artifacts/products-materials.md`; main materials and hardware), `product-researcher-tools` (`artifacts/products-tools.md`; tools and equipment), `product-researcher-ppe` (`artifacts/products-ppe.md`; protective equipment and small consumables), each depth `quick`; `cost-planner` depends on all three. Drop a category node only if the task clearly has nothing in it (e.g. no tools to buy because all are owned) |
 | `purchase-decision` | single `diy-researcher` (usage, compatibility, safety; depth `quick`) ∥ `product-researcher` (depth `standard`), both depend only on requirements, then `cost-planner` depending on both |
 | `how-to` | single `diy-researcher`, depth `quick`; add a `product-researcher` node (parallel, depth `quick`) only if the master asked for specific products |
 

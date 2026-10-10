@@ -109,6 +109,11 @@ Plan and design: `docs/garage-copilot-design.md` (sections 18 and 19). Deadline:
   so the validator failed the plan's quantities (G4) and re-ran planner → products ×2 → cost → validator
   (~9 min): quantity depends on the chosen product's consumption rate; (5) the project was inserted instead of
   updating the seeded idea project (fixed).
+- Universality review (before demo run 2, hanging shelf): agents/scripts have no tile-specific logic. Added:
+  playbook chosen in Phase 2 and given to the requirements agent; playbooks gained «Questions for the master»;
+  coordinator has a **small** `project-plan` path (one research node `standard`, one product node `standard`)
+  next to the **regular** one; examples in planner/product prompts made neutral; `contracts.test.mjs` keeps
+  playbooks, coordinator and agents consistent. The carpentry playbook has not run live yet (demo run 2).
 - Product research default is now three parallel nodes (materials, tools, ppe) to avoid retry rounds for
   unpriced items (round 4 finding); `_superseded-*` artifacts are git-ignored; first commit made.
 - Expected full-cycle duration is ~35 min per run; reduction deferred until after the MVP is complete.
