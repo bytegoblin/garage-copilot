@@ -1,6 +1,7 @@
 # Requirements traceability
 
-Maps every statement of [`task_description.md`](../task_description.md) to the implementation and to the
+Maps every statement of the assignment (`task_description.md`, a local file that is not stored in the
+repository) to the implementation and to the
 evidence that it works. This file is the authoritative status; `docs/implementation-status.md` tracks the
 work steps and `docs/garage-copilot-design.md` is the original design (with an implementation-notes block).
 

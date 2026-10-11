@@ -81,7 +81,8 @@ Plan and design: `docs/garage-copilot-design.md` (sections 18 and 19). Deadline:
 
 - Node 22.23.1 on the master's machine; `node:sqlite` used without a native dependency (requires >= 22.13).
 - `data/*.db` is git-ignored because the repository is public; `data/demo.db` holds a fictional master.
-- `task_description.md` stays in the repo root; brainstorm files are in `docs/background/`.
+- The assignment text `task_description.md` is a local reference only: untracked and git-ignored (removed from the
+  repository on 2026-10-11); brainstorm files are in `docs/background/`.
 - Git repository initialised; the master's commits so far end at `8962026`. Commit only when the master asks;
   attribution line `Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>`.
 - `state.mjs` is a CLI only (no exports); tests drive it through the CLI with `GARAGE_WORKFLOWS_DIR`.

@@ -4,7 +4,7 @@ Agentic workflow for a home workshop: the user (the "master") describes a task i
 gathers requirements, researches on the web, builds a validated and sourced plan, asks for explicit
 approval, and only then renders the final HTML guide.
 
-Full design: `docs/garage-copilot-design.md`. Assignment: `task_description.md`.
+Full design: `docs/garage-copilot-design.md`. Requirement-to-evidence map: `docs/traceability.md`.
 
 ## Session continuity (read first)
 

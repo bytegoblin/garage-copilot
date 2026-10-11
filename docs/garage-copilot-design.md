@@ -30,7 +30,7 @@ Deadline: 2026-10-15.
 - **Hooks:** `approval-gate-guard` also blocks the assistant from running `approve.mjs` and
   `render-html.mjs` outside the allowed conditions.
 - **Style:** the final plan follows the `master-voice` skill and passes a shorthand lint in G0.
-Source of truth for requirements: [`task_description.md`](../task_description.md).
+Source of truth for requirements: the assignment text (kept locally as `task_description.md`, not stored in the repository); the mapping of every statement to the implementation is in [`traceability.md`](traceability.md).
 
 ---
 
@@ -568,7 +568,6 @@ garage_assist/
 ├── .mcp.json
 ├── config/
 │   └── workflow.json             # max_retries: 3, default tone, models
-├── task_description.md           # assignment, kept at root as the reference
 ├── docs/
 │   ├── garage-copilot-design.md  # this document
 │   └── background/               # garage_copilot.txt, prompt.txt (brainstorm material, moved)

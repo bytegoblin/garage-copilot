@@ -10,6 +10,9 @@ workflows/*/artifacts/_superseded-*/
 # Baseline copies of artifacts that are being re-run (state.mjs start)
 workflows/*/artifacts/_prev/
 
+# The assignment text is a local reference only
+task_description.md
+
 # Secrets
 .env
 .env.*
