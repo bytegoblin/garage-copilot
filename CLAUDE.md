@@ -47,6 +47,7 @@ only through Markdown artifacts under `workflows/<run-id>/artifacts/`, never by 
 | Skills | `.claude/skills/*/SKILL.md` |
 | Hooks | `.claude/hooks/*.sh`, registered in `.claude/settings.json` |
 | MCP server (workshop memory, SQLite) | `mcp/workshop-memory/`, registered in `.mcp.json` |
+| MCP server (PDF documents) | `mcp/pdf-reader/`, registered in `.mcp.json` |
 | Workflow state | `workflows/<run-id>/workflow-state.json`, written only by `scripts/state.mjs` |
 | Config | `config/workflow.json` (retry limit, etc.) |
 
@@ -75,13 +76,22 @@ only through Markdown artifacts under `workflows/<run-id>/artifacts/`, never by 
    deterministic renderer `scripts/render-html.mjs`, which checks the approval itself.
 10. Updates to the workshop memory derived from a run are written only after approval and carry the `run_id`.
 11. Research is bounded: each researcher gets a depth (`quick` / `standard`, limits in `config/workflow.json`) and
-    stops when the budget is spent; gaps are reported as unknown, not searched on. Sources of the master's
+    stops when the budget is spent; gaps are reported as unknown, not searched on. PDF documents are read
+    only through `read_pdf` (by search words, at most two documents per node) and cited with the page. Sources of the master's
     country first; foreign sources are supplementary, tagged, at most 2 per artifact.
 12. Models are explicit, never inherited: the coordinator commands are pinned to `sonnet`; every agent
     definition has a `model`; `config/workflow.json` → `node_models` lightens individual split nodes.
     Validation and anything safety-relevant stays on the strong model; arithmetic and rendering are light.
 13. Trade playbooks (`.claude/skills/trade-*`) are checklists of questions, not facts; the coordinator
     picks one by task type and the researcher answers each question from sources.
+14. A re-run never starts from scratch: the agent reads its existing artifact first, and `state.mjs start`
+    keeps a baseline copy in `artifacts/_prev/`; the checker rejects a products artifact with fewer priced
+    rows. The research depth of every dispatch is printed by `state.mjs` (`depth=<level:searches/fetches>`);
+    only a re-run that fixes quoted findings gets the small `retry` budget.
+15. Prices are a gate, not a hope: every position of the plan that the master does not own is a row of the
+    shopping list, and `state.mjs domain-gates` fails G2 (`COVERAGE:`) when more than
+    `price_coverage.max_unpriced_share` of the positions have no price. If the retries run out, the master
+    decides: another round (`unblock`) or the plan with named gaps (`waive-coverage`).
 
 ## Secrets
 

@@ -18,7 +18,13 @@ The runs were produced while the rules were being tightened, so the older ones d
 check of the final checker. Re-running `node scripts/check-artifact.mjs` over them reports exactly these
 known findings, which were not violations at the time:
 
-- runs 1 and 2 cite PDF data sheets (PDF sources were disabled after run 1);
-- run 2's final plan predates the `master-voice` style rules and the shorthand lint.
+- run 1 cites PDF data sheets without page references in three artifacts (`research-bonding.md`,
+  `products-materials.md`, `final-plan.md`); PDF sources were disabled after run 1 and re-enabled on
+  2026-10-11 through the `pdf-reader` server, with the page reference as a rule;
+- run 2's final plan predates the `master-voice` style rules and the shorthand lint («ор.», one-letter
+  notation);
+- run 3's final plan contains one pipeline phrase («по правилам поиска»), which is what the phrase lint was
+  added for; it passed at the time because of a Cyrillic word-boundary bug in the first version of that lint.
 
-Run 3 passes every check.
+Every other artifact of the three runs passes the current checker. The plans are bound to the master's
+approval by hash, so they are kept unchanged.

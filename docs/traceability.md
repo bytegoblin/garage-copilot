@@ -4,7 +4,8 @@ Maps every statement of [`task_description.md`](../task_description.md) to the i
 evidence that it works. This file is the authoritative status; `docs/implementation-status.md` tracks the
 work steps and `docs/garage-copilot-design.md` is the original design (with an implementation-notes block).
 
-Verified after the third demo run (commit `48e8727` plus the documentation and Run 3 commits).
+Verified after the third demo run, the live hook probe and the clean-clone run (2026-10-11), and after the fixes
+that run caused (section H).
 
 Legend: ✅ verified in a live run · 🧪 verified by automated tests only · ⚠️ partially verified or deviating ·
 ❌ missing.
@@ -13,7 +14,7 @@ Evidence abbreviations: **Run 1** = `workflows/20261010-1232-garage-tiles` (regu
 **Run 2** = `workflows/20261010-1806-hanging-cabinet-beech` (small graph, 8 nodes),
 **Run 3** = `workflows/20261010-2340-bosch-gas15ps-dust-extraction` (`purchase-decision`, parallel research and
 product nodes, 7 nodes). Tests: `node --test
-scripts/test/*.test.mjs` (79) and `cd mcp/workshop-memory && npm test`.
+scripts/test/*.test.mjs` (97) and `cd mcp/workshop-memory && npm test`.
 
 ## A. Architecture and requirements
 
@@ -32,7 +33,7 @@ scripts/test/*.test.mjs` (79) and `cd mcp/workshop-memory && npm test`.
 | 11 | Gather, capture and confirm missing information | `requirements-formalizer`, `qa-log.md`, explicit confirmation via `AskUserQuestion`, playbook question lists | Run 2: 3 requirement rounds incl. master overrides | ✅ |
 | 12 | Plan adapts to confirmed requirements and context | Selection by workflow type, size, playbook; profile and inventory via MCP | Run 1 vs Run 2 graphs; owned tools excluded (G3) | ✅ |
 | 13 | External sources incl. web search; at least one MCP; not model knowledge alone | `WebSearch`/`WebFetch` in researchers; custom MCP `workshop-memory`; G1 requires sources | Source lists with URLs and dates in all research and product artifacts; MCP calls in transcripts | ✅ |
-| 14 | Common capabilities as reusable skills | 6 skills (see C) | Skill content visible in agent transcripts | ✅ |
+| 14 | Common capabilities as reusable skills | 7 skills (see C) | Skill content visible in agent transcripts | ✅ |
 | 15 | Artifacts pass gates before dependents proceed | `depUsable` in `state.mjs`: dependents are not released until validated (and domain gates passed for the validator) | Tests + both runs | ✅ |
 | 16 | Final result: addresses requirements, predictable structure across repeated runs, Markdown/HTML/PDF | Fixed section lists per workflow type, deterministic renderer (same plan → same bytes) | Renderer determinism by test; **no repeated live run with the same input** | ⚠️ |
 
@@ -42,14 +43,14 @@ scripts/test/*.test.mjs` (79) and `cd mcp/workshop-memory && npm test`.
 |---|---|---|
 | CLAUDE.md documents workflow and execution rules | ✅ | `CLAUDE.md` |
 | ≥ 5 subagents and 1 coordinator | ✅ | 8 subagents + coordinator |
-| ≥ 2 reusable skills, used by the workflow | ✅ | 6 |
-| PreToolUse and PostToolUse hooks implemented and used | ⚠️ | 4 hooks registered; live evidence only for part of them, see D |
-| ≥ 1 community or custom MCP integrated and used | ✅ | `workshop-memory` (Node, SQLite) |
+| ≥ 2 reusable skills, used by the workflow | ✅ | 7 |
+| PreToolUse and PostToolUse hooks implemented and used | ✅ | 4 hooks registered; live probe 5/5 inside a subagent, see D |
+| ≥ 1 community or custom MCP integrated and used | ✅ | `workshop-memory` (Node, SQLite); `pdf-reader` (Node, unpdf) added 2026-10-11, tested with a generated PDF and a real manufacturer data sheet, **not yet used in a live run** |
 | Components, skills, hooks, MCP config version-controlled | ✅ | `git ls-files` = 101+ files; `.mcp.json`, `.claude/**` committed |
 | ≥ 3 runs with inputs, artifacts and state stored | ✅ | 3 runs of 3 different shapes: regular `project-plan`, small `project-plan`, `purchase-decision`; each with `request.md`, `qa-log.md`, artifacts, `workflow-state.json`, `approval.json`, HTML |
 | README: setup, run, resume, prerequisites, env | ✅ | `README.md` |
 | No secrets committed; required secrets documented | ✅ | Scans clean; none required (documented); `.gitignore` for `data/*.db`, `.env*` |
-| Set up and run from a clean checkout | ⚠️ | A clean `git clone` → `scripts/setup.sh` → 79 tests: verified. Starting Claude Code in the clone and running `/garage`: not yet |
+| Set up and run from a clean checkout | ✅ | 2026-10-11: fresh clone → `scripts/setup.sh` → Claude Code → empty database → onboarding with the introduction → a complete run to the approved HTML and the memory write-back (sessions `709c6def`, `780cf7c8`). The run exposed quality defects that were then fixed, see H |
 
 ## C. Components
 
@@ -59,8 +60,8 @@ scripts/test/*.test.mjs` (79) and `cd mcp/workshop-memory && npm test`.
 | Subagents (8) | `requirements-formalizer`, `diy-researcher`, `product-researcher`, `project-planner`, `cost-planner`, `evidence-validator`, `synthesizer`, `final-output-builder` |
 | Skills (7) | `artifact-validator`, `research-evidence`, `garage-html-theme`, `master-voice`, `master-onboarding`, `trade-tiling`, `trade-carpentry` |
 | Hooks (4) | PreToolUse: `approval-gate-guard`, `no-leak-guard`, `memory-write-guard`; PostToolUse: `post-write-state` |
-| MCP (1) | `workshop-memory`: profile, inventory, purchases, projects (SQLite) |
-| Scripts | `state.mjs`, `check-artifact.mjs`, `approve.mjs`, `render-html.mjs`, `setup.sh` |
+| MCP (2) | `workshop-memory`: profile, inventory, purchases, projects (SQLite); `pdf-reader`: text of PDF data sheets with page numbers (unpdf) |
+| Scripts | `state.mjs`, `check-artifact.mjs`, `lib/price-table.mjs`, `approve.mjs`, `render-html.mjs`, `usage-report.mjs`, `setup.sh` |
 
 ## D. Hooks: what is actually proven
 
@@ -94,17 +95,22 @@ harness itself changes (no evidence either way); the heuristic Bash inspection r
 
 ## Known findings of the current checker on the earlier runs
 
-Run 1 cites PDF data sheets (4 artifacts) and Run 2's final plan predates the style rules; see
-`workflows/README.md`. They were produced under earlier rules and are kept unchanged as historical records.
-Run 3 passes all checks.
+Run 1 cites PDF data sheets without page references (3 artifacts; PDFs are allowed since 2026-10-11, but a
+page reference is required), Run 2's final plan predates the style rules and Run 3's final plan
+contains one pipeline phrase («по правилам поиска»); see `workflows/README.md`. They were produced under
+earlier rules (or before the lint worked on Cyrillic) and are kept unchanged: the approval is bound to their
+hash. All other artifacts of the three runs pass.
 
 ## F. Open items before submission
 
 1. ~~Live hook probe in a subagent~~ **done 2026-10-11**, 5/5 (`docs/hook-probe.md`).
-2. Start Claude Code in a fresh clone and run one short `/garage` (`setup.sh` and the tests already pass in a clone).
-3. Measure the light re-validation on a run with a validator FAIL.
-4. Final README read-through and secret scan.
-5. Optional: a live run of a forced unresolved failure (`# BLOCKED`) to replace the test-only evidence of A7.
+2. ~~Start Claude Code in a fresh clone~~ **done 2026-10-11** (section H).
+3. A live run that shows the fixes of section H working (priced share, re-run keeps prices): not run yet;
+   the fixes are covered by 14 tests.
+4. ~~Final README read-through and secret scan~~ **done 2026-10-11**: no keys, tokens, databases or personal
+   addresses in the tree or in the history.
+5. Optional: a live run of a forced unresolved failure (`# BLOCKED`, now also `COVERAGE:` with `waive-coverage`)
+   to replace the test-only evidence of A7.
 6. Optional: a repeat of one run with the same input to show structural identity (A16).
 
 ## G. Token economy, measured (`scripts/usage-report.mjs`)
@@ -119,3 +125,24 @@ Run 3 passes all checks.
 Not a like-for-like comparison: Run 2 had a rejected plan, a 3.5 h pause inside one resumed session and a
 longer requirements phase. The per-run call count (−20 %) is the cleanest figure for the composite
 commands; retry research used 3–4 searches instead of 12.
+
+## H. Clean-clone run (2026-10-11) and what it changed
+
+A fresh clone on an empty database, a real master (Wrocław), the task «LED profile in a chipboard groove».
+The master changed the task four times (glue → the whole lighting → screws without safety → a corrected profile
+type), and the run still reached the approved HTML. It also showed that the result can be **valid and poor**:
+the shopping list had a price for 2 of ~24 positions and the validator passed it. The run is not committed
+(real workshop data); the findings are:
+
+| Finding | Cause in the logs | Fix | Evidence |
+|---|---|---|---|
+| Prices of an earlier result were lost | The re-dispatched product node was told «no earlier findings», did not read its existing file, rebuilt it with 4 searches | Agents read their existing artifact first; `state.mjs start` keeps a baseline in `artifacts/_prev/`; G0 rejects fewer priced rows (explained removal: `Снято с плана:`) | `coverage.test.mjs` 7–8 |
+| A first real research got the small budget | Depth was «`retry` when attempt ≥ 2» in the coordinator prompt | Depth is chosen by `state.mjs`: node level from `plan.json`, `retry` only when fixing quoted findings; printed with every dispatch | tests 3–6 |
+| 6 searches for 12+ positions | One «materials» node held profile, strip, power supply, sensor, screws, wire, small parts | Node sizing rule (≤ 6 positions per node, `product_nodes`), levels `quick` / `standard` | `contracts.test.mjs` |
+| Gaps accepted as a «search limit» | G2 checked arithmetic only; no `must` for a priced list; light re-validation carried G2/G6 forward | Shopping list has a row per position; the script computes coverage and fails G2 (`COVERAGE:`) above 30 % unpriced; G2/G6 never carried forward; formalizer adds the `must` | tests 9–11 |
+| Stuck after retries | Only «blocked» | `waive-coverage` (master accepts the gaps) or `unblock` (another round), asked by the coordinator | test 12 |
+| A meaningless total | Two different multimeter models were averaged as one position | Averages only across shops for the same product; alternatives are not summed; optional items kept out of the total | `cost-planner` contract |
+| Wrong object class researched | Plaster-in profiles with lugs used for a furniture mortise profile; the master had to correct it | «Fix the object class first» in `diy-researcher`; class mismatch is a G4 defect | agent contracts |
+
+Not covered: retailer pages that answer 403 or show prices only after login stay an external limit; indicative
+snippet prices are allowed and marked.

@@ -21,11 +21,20 @@ If the content of the `artifact-validator` skill is not already in your context,
 
 ## What to do
 
-1. Build the shopping list from the bill of materials (or the product under decision). For each item take
+1. Build the shopping list from the bill of materials (or the product under decision). **Every position of
+   the plan that the master does not own is a row of the table**, in the plan's order: priced or not. A
+   position without any candidate or price is a row too: `нет цены` in the `Средняя` column and a short
+   reason in the `Позиция` cell; it is never moved into a bulleted list or dropped. For each priced item take
    the **recommended** candidate from the products artifact, with up to two shops and their prices.
 2. Compute the average price per item from the prices actually present; multiply by quantity; show the
-   arithmetic in the table or right below it. Currency from the products artifact / profile.
-3. `Итого`: sum of line totals. `Резерв`: a contingency of 10 % unless the sources justify another figure
+   arithmetic in the table or right below it. Currency from the products artifact / profile. **An average is
+   taken only across shops for the same product.** Different models or classes of one need are alternatives,
+   not two prices of one item: recommend one (the cheapest that fits the requirements), put it in the row,
+   and name the others in the cell or in `Допущения и неопределённости`. An optional or one-off item (for
+   example a measuring tool for a single check) is listed, and kept out of the total unless the plan needs it.
+3. `Итого`: sum of line totals of the priced positions, split into materials and tools, and the count «цена
+   есть у N из M позиций». If prices are missing, say plainly that the sum is a lower bound and what it does
+   not include. `Резерв`: a contingency of 10 % unless the sources justify another figure
    (state the reason). `Соответствие бюджету`: compare with the confirmed budget; if none was given write
    «Бюджет не задан» and say what the total means for the master.
 4. `Сделать самому или купить готовое`: compare the total with the ready-made / turnkey benchmark from the

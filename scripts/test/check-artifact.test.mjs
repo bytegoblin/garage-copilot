@@ -216,7 +216,7 @@ test('validation: gate ids with names are accepted', () => {
   assert.equal(r.status, 0, r.stdout);
 });
 
-test('PDF sources and untagged foreign sources fail; EU and local pages pass', () => {
+test('PDF sources need a page reference; untagged foreign sources fail; EU and local pages pass', () => {
   const doc = (src) => productsDoc(GOOD_ROW, 'R1 — покрыто', src);
   const run = (src) => {
     writeFileSync(join(artifacts, 'products.md'), doc(src));
@@ -227,9 +227,16 @@ test('PDF sources and untagged foreign sources fail; EU and local pages pass', (
     + '3. Sklep — https://www.morele.net/p/1 (дата обращения: 2026-10-10)';
   assert.equal(run(ok).status, 0, run(ok).stdout);
 
+  // A PDF is a valid source when the page it comes from is given.
   let r = run('1. Karta — https://example.pl/docs/instrukcja.pdf (дата обращения: 2026-10-10)');
   assert.equal(r.status, 1);
-  assert.match(r.stdout, /PDF source/);
+  assert.match(r.stdout, /PDF source .* has no page reference/);
+  r = run('1. Karta techniczna CX-100 — https://example.pl/docs/instrukcja.pdf, стр. 3 (дата обращения: 2026-10-10)');
+  assert.equal(r.status, 0, r.stdout);
+  // ... and it still has to follow the locality rules.
+  r = run('1. Datasheet — https://www.protrade.co.uk/docs/x.pdf, стр. 2 (дата обращения: 2026-10-10)');
+  assert.equal(r.status, 1);
+  assert.match(r.stdout, /foreign source without the/);
 
   r = run('1. Shop — https://www.protrade.co.uk/p/1 (дата обращения: 2026-10-10)');
   assert.equal(r.status, 1);

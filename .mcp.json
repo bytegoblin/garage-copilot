@@ -2,10 +2,18 @@
   "mcpServers": {
     "workshop-memory": {
       "command": "node",
-      "args": ["mcp/workshop-memory/server.mjs"],
+      "args": [
+        "mcp/workshop-memory/server.mjs"
+      ],
       "env": {
         "GARAGE_DB": "${GARAGE_DB:-data/garage.db}"
       }
+    },
+    "pdf-reader": {
+      "command": "node",
+      "args": [
+        "mcp/pdf-reader/server.mjs"
+      ]
     }
   }
 }

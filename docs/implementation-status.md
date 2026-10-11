@@ -11,33 +11,26 @@ Plan and design: `docs/garage-copilot-design.md` (sections 18 and 19). Deadline:
 
 ## Current position
 
-*Snapshot: 2026-10-11, after the hook probe. 4 days to the deadline.*
+*Snapshot: 2026-10-11, after the clean-clone run. 4 days to the deadline.*
 
-- **State:** the system is functionally complete. All three workflow types have a stored, approved demo run
-  (≥ 3 runs required by the assignment: met); 82 tests pass (`node --test scripts/test/*.test.mjs`, plus the MCP
+- **State:** the system is functionally complete and the assignment checklist is closed (DoD in `docs/traceability.md` §B). All three workflow types have a stored, approved demo run
+  (≥ 3 runs required by the assignment: met); 98 tests pass (`node --test scripts/test/*.test.mjs`, plus the MCP
   smoke test in `mcp/workshop-memory`).
-- **Last commit:** `eef6b62` (G0 source rules, light re-validation, probe command, `workflows/README.md`).
-- **Uncommitted:** hook probe result (`docs/hook-probe.md`) and the documentation updates that record it;
-  onboarding instructions moved into the new skill `.claude/skills/master-onboarding/SKILL.md` (Phase 0 of
-  `garage.md` now points to it, contract test added, 83 tests pass; verified on an empty database that
-  `get_profile` is `null` and that `update_profile`/`add_inventory_item` without `run_id` pass the memory
-  guard). The first message of a fresh onboarding introduces the assistant
-  (who it is, what for, that it never decides or buys for the master, that final output follows approval). Commit only when the master asks.
+- **Last commit:** `b536601` (onboarding skill with the assistant introduction).
+- **Uncommitted:** the fixes of step 22, the README pass and the documentation. Commit only when the master asks.
 - **Open question for the master:** none
 
 ### Next steps (in order)
 
-1. ~~Hook probe~~ **done 2026-10-11, 5/5** (`docs/hook-probe.md`, traceability §D, step 12). Uncommitted.
-2. **Clean-checkout test (the master runs it):**
-   `git clone <repo> /tmp/garage-clone && cd /tmp/garage-clone && nvm use && bash scripts/setup.sh`, then
-   `GARAGE_DB=data/demo.db claude` and one short request, e.g.
-   `/garage Каким клеем лучше склеивать щиты из бука?` (also exercises the `how-to` type live). Record the
-   outcome; mark step 20 **done**.
+1. ~~Hook probe~~ **done 2026-10-11, 5/5**. ~~Clean-clone run~~ **done 2026-10-11**, with quality findings.
+2. ~~Fix the findings of the clean-clone run~~ **done** (step 22, tests only). **Show it live:** in the clone
+   (`git pull` from this repository), run a task with many small items (the LED profile again is a good one,
+   with the same answers); check `depth=` in the `started` lines, the `price coverage: X of Y` note after the
+   budget, a re-run that keeps prices, and the share of priced positions in the final plan. Not started: the
+   master asked to hold the live run.
 3. **Measure the light re-validation** on the next real run with a validator FAIL
    (`node scripts/usage-report.mjs <session-id>`); note the result in `docs/traceability.md` §G.
-4. **Final README pass** (English, check every command still matches the files) and **secret scan**
-   (`git grep -nEi "api[_-]?key|secret|token|password|BEGIN .*PRIVATE"`, check `git ls-files data`; the
-   databases must not be tracked). Mark steps 19 and 21 **done**.
+4. ~~Final README pass and secret scan~~ **done 2026-10-11** (steps 19 and 21).
 5. Optional, if time allows: a live `# BLOCKED` run (A7 is unit-tested only) and a repeat of one run with the
    same input (A16, structural identity).
 6. Final commit; push is the master's decision (the repository is public).
@@ -78,9 +71,11 @@ Plan and design: `docs/garage-copilot-design.md` (sections 18 and 19). Deadline:
 | 16 | `garage-html-theme` skill, `final-output-builder`, deterministic `render-html.mjs` | 4 | done | Live: builder ran after approval, `check-artifact` PASS on the HTML (10 sections, 2 tables, 22 links, no scripts, no internal names) |
 | 17 | Memory write-back after approval (Phase 7, `writeback`) | 4 | done | Live: `upsert_project` with `run_id` passed `memory-write-guard`; run `completed`. Defect found: it created a second project instead of updating the seeded one (fixed in Phase 7, smoke-tested) |
 | 18 | Demo runs 1–3 committed under `workflows/` | 5 | done | Runs `20261010-1232-garage-tiles` (regular), `20261010-1806-hanging-cabinet-beech` (small), `20261010-2340-bosch-gas15ps-dust-extraction` (purchase-decision): all `completed`, approved, HTML rendered, committed; table in `workflows/README.md` |
-| 19 | Final `CLAUDE.md`, `README.md` complete | 5 | built, unverified | Both exist and are kept in sync with each change (13 execution rules, setup/run/approve/resume/tests/usage/probe sections); final read-through against the files still to do (next step 4) |
-| 20 | Clean-checkout test | 5 | built, partly verified | In a clone: `setup.sh` ran from scratch and the test suite passed (79/82 at that time, the 3 failures were checks of the not-yet-committed files). **Not done:** starting Claude Code in the clone and one live `/garage` (next step 2) |
-| 21 | Secret scan, traceability table updated | 5 | built, partly verified | `docs/traceability.md` exists (A requirements, B DoD, C components, D hook evidence, E deviations, F open, G tokens) and is updated with each batch; **secret scan not run in the final state** (next step 4) |
+| 19 | Final `CLAUDE.md`, `README.md` complete | 5 | done | 2026-10-11: README read through against the files (components, workflow types, reliability rules, run, approve, resume, tests, probe, usage, layout, privacy); CLAUDE.md has 15 execution rules; both reflect the fixes of the clean-clone run |
+| 20 | Clean-checkout test | 5 | done | Live run in a fresh clone on an empty database, 2026-10-11 (sessions `709c6def` + resume `780cf7c8`, run `20261011-1019-led-profile-adhesive`): setup, onboarding with the introduction, requirements, dynamic plan, hooks, approval, HTML and memory write-back all worked. The result quality was poor; the causes were fixed in step 22 |
+| 21 | Secret scan, traceability table updated | 5 | done | 2026-10-11: `git grep` and `git log -p` for keys, tokens, private keys, e-mails, home paths: only false positives (`cisk-` in an Allegro URL); `git ls-files data` = `.gitkeep`; no `.db`/`.env` ever committed; traceability A–H updated |
+| 22 | Fixes after the clean-clone run: depth chosen by the script, baseline `_prev` and price-regression check, price-coverage gate (`COVERAGE:`), `waive-coverage`, node sizing, formalizer `must` for a priced list, cost-planner rows and averaging, validator never carries G2/G6 forward, object-class rule | 5 | done (not yet shown in a live run) | `coverage.test.mjs` (12 tests) + contract tests; 97 tests pass. **A live run with the new rules has not been made** (the master asked not to start one yet) |
+| 23 | PDF support: `mcp/pdf-reader` (`read_pdf`), `.mcp.json`, `setup.sh`, agent tools, `research-evidence` rules, G0 page-reference rule, validator spot-check via `read_pdf` | 5 | done (not yet shown in a live run) | `mcp/pdf-reader` smoke test (generated PDF over stdio, SSRF checks), a real Ceresit data sheet read by query (4 pages, the application-temperature line found with its page), G0 test, contract test; `setup.sh` from a scratch copy; 98 tests pass |
 
 ## Decisions made during implementation
 
@@ -102,8 +97,12 @@ Plan and design: `docs/garage-copilot-design.md` (sections 18 and 19). Deadline:
   (fixed: foreground dispatch; `verify` resolves `running` only at resume start), agents lacked `Edit` and
   rewrote whole files (fixed: `Edit` added, "write once, edit on retry" rule), artifacts were 20–48 KB
   (fixed: per-type character caps in `config/workflow.json` `artifact_max_chars`, enforced by G0).
-- PDF documents are not fetched (decision of the master: token cost for the MVP); research uses HTML pages
-  only and records PDF-only facts as unknown. No poppler dependency.
+- PDF documents were first excluded (token cost for the MVP) and **re-enabled on 2026-10-11** at the master's
+  request. `WebFetch` only saves a PDF as a binary, and `Read` of pages needs poppler (`pdftoppm`), so a small
+  MCP server `mcp/pdf-reader` (`unpdf`, pure Node, no external tools) provides `read_pdf`: search words → snippets
+  with page numbers (cheap), or pages, with a character cap. Rules: a call counts as a fetch, at most two
+  documents per node (`source_policy.pdf`), a PDF source line needs «стр. N» (G0), text is untrusted data, the
+  server refuses local and private addresses.
 - Third live run (session 788e8d87): 12.5 min vs 22 min before. Known remaining inefficiencies: agents
   size their text blindly, so 3 of 5 writers rewrote the whole file once to get under the cap and one tried
   `Bash` (not in its tools); they should aim for ~80 % of the cap. Product research at `quick` depth left
@@ -197,6 +196,45 @@ Plan and design: `docs/garage-copilot-design.md` (sections 18 and 19). Deadline:
   `workflow-state.json`, (d) a clean artifact write (expects `created` via PostToolUse), (e) an MCP
   `record_purchase` with a `run_id` before approval; result goes to `docs/hook-probe.md`.
   (5) `workflows/README.md` records which known checker findings apply to runs 1–2.
+
+## Findings of the clean-clone run (2026-10-11) — fixed in step 22
+
+The run (kitchen LED profile; the master changed the task four times: glue → whole lighting → screws, no
+safety → corrected profile type) ended `completed` with a shopping list priced for **2 of ~24 positions**
+(sensor, multimeter; no tape, power supply, profile, screws, wire). An earlier intermediate result had more
+prices (tape, router bit) and was lost. Causes found in the logs:
+
+1. **Re-run from scratch, previous artifact ignored.** After a cascade the product node was re-dispatched with
+   «no content findings, previous attempts did not finish» (the resumed coordinator had no context); the agent
+   did not read its existing `products-materials.md` and rebuilt it with 4 searches.
+2. **Depth by attempt number.** `retry` depth (4 searches / 5 fetches) is chosen when `attempt` ≥ 2
+   (`garage.md` Phase 4), also for the first real result of an interrupted node. Four searches cannot price ~12
+   positions; the tape was never searched.
+3. **Node scope too wide.** One «materials» node held profile, strip, power supply, sensor, screws, wire,
+   connectors, grommets, sealant: 6 searches for ≥ 12 positions.
+4. **No price-coverage rule.** Requirements had no `must` for a priced list (only R20 `should`), G2 checks
+   arithmetic only, and the validator called the gap «a search-budget limit, not a calculation error».
+5. **My light re-validation carried G6 and G2 forward** («без изменений с прошлой проверки») although the
+   products artifact had changed; step 2 of the dispatch rules did not list G6/G2 for product changes.
+6. **Budget arithmetic.** The «average» of two different multimeter models (157.84 and 155.00) was summed as one
+   position and made up 60 % of the total; optional tools should not enter the total, averages only across shops
+   for the same item.
+7. **Domain fit.** For «врезной профиль в паз ДСП» research took plasterboard-type profiles with side lugs
+   (groove 23 × 10 mm); the master had to correct it. The final plan still has no confirmed furniture profile.
+8. Retailer pages: several Polish shops answer 403 or show prices «после входа»; expected, not fixable.
+
+Fixes (step 22), by finding number: (1) every researcher reads its existing artifact first, `state.mjs start`
+saves a baseline in `artifacts/_prev/` (git-ignored) and G0 rejects a products artifact with fewer priced rows
+unless the removal is explained on a line `Снято с плана:`; (2) depth is decided by `state.mjs` (node `depth`
+in `plan.json`; `retry` only for a re-run that fixes quoted findings; a `COVERAGE:` finding, an upstream change,
+an interruption or the master's revision get the node's own level) and printed as `depth=<level:s/f>` in the
+`started` line; (3) node sizing rule in Phase 3 (`product_nodes.max_positions_per_node` = 6); (4) the shopping
+list has a row per position, `domain-gates` computes the priced share and fails G2 above
+`price_coverage.max_unpriced_share` (0.3), handing positions to the node whose artifact mentions them; the
+validator never carries G2/G6 forward after a re-run; the formalizer adds a `must` for a priced list;
+`waive-coverage` / `unblock` for the master's decision after exhausted retries; (6) averaging and optional-item
+rules in `cost-planner`; (7) object-class rule in `diy-researcher` and a G4 clause in the validator.
+Not fixed on purpose: retailer pages that answer 403 or hide prices behind a login (finding 8).
 
 ## Known gaps and risks
 

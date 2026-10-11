@@ -88,7 +88,7 @@ this task needs. There is no fixed pipeline: which of `diy-researcher`, `product
 nodes below are always present.
 
 Settings (read once with `Read config/workflow.json`): `research_depth` (hard search/fetch limits per
-level) and `playbooks` (trade → playbook skill).
+level), `product_nodes.max_positions_per_node` and `playbooks` (trade → playbook skill).
 
 **Trade playbook.** The one chosen in Phase 2 (none → the researcher works from the requirements alone).
 Pass its name to the researchers.
@@ -105,13 +105,14 @@ Selection rules:
 | **small** `project-plan` | one `diy-researcher` (depth `standard`; the playbook's whole checklist, all its topics) → `project-planner` → **one** `product-researcher` (depth `standard`, artifact `artifacts/products.md`, covering materials, hardware, tools and protective equipment) → `cost-planner` |
 | **regular** `project-plan` with a playbook | research split by the playbook's "Recommended research split": one `diy-researcher-<slug>` node per topic (artifact `artifacts/research-<slug>.md`), all in parallel, depth `quick` each; then `project-planner` depending on **all** of them → product research (next row) → `cost-planner` |
 | **regular** `project-plan` without a playbook | single `diy-researcher` (depth `standard`) → `project-planner` → product research (next row) → `cost-planner` |
-| **regular** `project-plan`, product research | **three parallel product nodes**, all depending on `project-planner`: `product-researcher-materials` (`artifacts/products-materials.md`; main materials and hardware), `product-researcher-tools` (`artifacts/products-tools.md`; tools and equipment), `product-researcher-ppe` (`artifacts/products-ppe.md`; protective equipment and small consumables), each depth `quick`; `cost-planner` depends on all three. Drop a category node only if the task clearly has nothing in it (e.g. no tools to buy because all are owned) |
+| **regular** `project-plan`, product research | **parallel product nodes by group of things to buy**, all depending on `project-planner`: by default `product-researcher-materials` (`artifacts/products-materials.md`; main materials and hardware), `product-researcher-tools` (`artifacts/products-tools.md`; tools and equipment), `product-researcher-ppe` (`artifacts/products-ppe.md`; protective equipment and small consumables); `cost-planner` depends on all of them. Drop a group only if the task clearly has nothing in it (e.g. no tools to buy because all are owned). **Size the groups:** count the distinct things the master has to buy in a group (the requirements list them). A group with more than `product_nodes.max_positions_per_node` (6) is split into several nodes by natural subgroup (for example `product-researcher-electrics`, `product-researcher-fixings`, with their own artifacts `products-<slug>.md`). Depth `quick` for up to 6 positions, `standard` for 7 to 12, never more than 12 in one node. One search cannot price fifteen things |
 | `purchase-decision` | single `diy-researcher` (usage, compatibility, safety; depth `quick`) ∥ `product-researcher` (depth `standard`), both depend only on requirements, then `cost-planner` depending on both |
 | `how-to` | single `diy-researcher`, depth `quick`; add a `product-researcher` node (parallel, depth `quick`) only if the master asked for specific products |
 
-Depth is a hard budget: the dispatch prompt carries the numbers from `config/workflow.json`. A single
-`standard` node and a topic node (`quick`) have different budgets on purpose: split research is cheaper
-per node and runs in parallel.
+Depth is a hard budget. Write the level (`quick` or `standard`) into every researcher node of `plan.json` as
+`"depth"`; the script then prints the numbers for each dispatch (see Phase 4) and lowers them to the small
+`retry` budget only for a re-run that fixes quoted findings. A single `standard` node and a topic node
+(`quick`) have different budgets on purpose: split research is cheaper per node and runs in parallel.
 
 **Always** end the plan with these three nodes:
 
@@ -127,7 +128,8 @@ Write the plan to `workflows/<run-id>/plan.json`:
 ```json
 {
   "nodes": [
-    {"id": "diy-researcher", "agent": "diy-researcher", "artifact": "artifacts/research.md"},
+    {"id": "diy-researcher", "agent": "diy-researcher", "artifact": "artifacts/research.md",
+     "depth": "standard"},
     {"id": "project-planner", "agent": "project-planner", "artifact": "artifacts/project-plan.md",
      "depends_on": ["diy-researcher"]}
   ]
@@ -136,8 +138,8 @@ Write the plan to `workflows/<run-id>/plan.json`:
 
 A node with no `depends_on` depends only on the requirements. Artifact names: `research[-slug].md`,
 `products[-slug].md`, `project-plan.md`, `budget.md`. In `cost-planner`'s dispatch list **every**
-`products-*.md` of the run. Remember the playbook name and the depth of each node;
-they go into its dispatch prompt (Phase 4). Do not store them in `plan.json`. Then:
+`products-*.md` of the run. Remember the playbook name; it goes into the dispatch prompt of the researchers
+(Phase 4), it is not stored in `plan.json`. Then:
 
 1. `node scripts/state.mjs set-plan <run-id> workflows/<run-id>/plan.json`
 2. Tell the master in two or three plain sentences what you are going to do and why those steps (no agent names).
@@ -155,8 +157,8 @@ Two composite commands do the bookkeeping, so that each step costs one call:
 Loop until the closing `# …` line of the output is not `# IN_PROGRESS`:
 
 1. Call `start-ready`. The output has tab-separated actions:
-   - `started <node> <agent> <artifact> attempt=<n> [last findings]`: the node is marked running; dispatch
-     its subagent (step 2).
+   - `started <node> <agent> <artifact> attempt=<n> depth=<level:searches/fetches|-> [last findings]`: the
+     node is marked running; dispatch its subagent (step 2) with exactly this depth.
    - `running <node> ...`: a subagent of **this** session is still working. Wait for it; never dispatch the
      node again. (Interrupted nodes from an earlier session never show up as `running`: the `verify` step
      of resume has already turned them into `created` or `stale`.)
@@ -173,12 +175,14 @@ Loop until the closing `# …` line of the output is not `# IN_PROGRESS`:
      pass a more expensive model than the agent definition has.
    - **Prompt**, in this order: run id and node id; workflow type; output path
      `workflows/<run-id>/artifacts/<file>` (and the `topic` or `category` slug for a split node); for
-     researchers the `depth` with its numbers from `config/workflow.json` → `research_depth`
-     (`quick`/`standard` on the first attempt, **`retry` when `attempt` ≥ 2**) and the `playbook` name if any;
+     researchers the `depth` **exactly as the `started` line prints it** (level and the two numbers; never
+     choose or lower it yourself) and the `playbook` name if any;
      the paths of the input artifacts, listing **only validated** upstream artifacts that this agent needs
      (`requirements.md` always; research, plan or products when they are upstream of this node — **all**
-     files of a split artifact family, e.g. every `research-*.md`); on a retry the exact findings and the
-     attempt number; the reminder to write Russian content in the fixed structure, to write only its own
+     files of a split artifact family, e.g. every `research-*.md`); on a re-run the exact findings (when
+     there are any) and the attempt number, and the sentence «If your output file already exists, it is
+     your previous version: read it first and keep what is still valid». Never write that earlier attempts
+     «left nothing»: you do not know what is on disk, the agent checks; the reminder to write Russian content in the fixed structure, to write only its own
      artifact and to reply with **one line**: `DONE <path>` or `BLOCKED <reason>`. Never paste another
      agent's output into the prompt.
    - `evidence-validator`: the prompt lists **all** validated artifacts, the table of plan nodes
@@ -208,7 +212,12 @@ Terminal states (the closing line of the output):
 - `# COMPLETE`: every node is validated, including the final output → Phase 7.
 - `# BLOCKED`: a node exhausted its retries. Stop. Explain to the master in plain Russian what failed,
   what was therefore not done, and what they can do (answer a question, relax a requirement, try later).
-  Do not dispatch anything downstream.
+  Do not dispatch anything downstream. When the blocked node's last finding starts with `COVERAGE:` the
+  problem is missing prices: say how many positions of how many have a price, which ones do not (a
+  few names, in plain words), and offer two ways: one more round of price search for exactly these
+  positions (`node scripts/state.mjs unblock <run-id> <node>` for each blocked product node), or showing the
+  plan as it is, with the gaps named (`node scripts/state.mjs waive-coverage <run-id>`; then continue the
+  loop with `start-ready`). Do the one the master chooses; never decide it for him.
 - `# IDLE` / anything else unexpected: run `node scripts/state.mjs summary <run-id>`, report honestly.
 
 **Pauses and long sessions.** Everything is saved after every step. When the master pauses («поставь на

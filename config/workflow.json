@@ -71,7 +71,12 @@
       "int",
       "global",
       "www"
-    ]
+    ],
+    "pdf": {
+      "allowed": true,
+      "require_page_reference": true,
+      "max_documents_per_node": 2
+    }
   },
   "node_models": {
     "product-researcher-ppe": "haiku"
@@ -79,5 +84,11 @@
   "playbooks": {
     "tiling": "trade-tiling",
     "carpentry": "trade-carpentry"
+  },
+  "price_coverage": {
+    "max_unpriced_share": 0.3
+  },
+  "product_nodes": {
+    "max_positions_per_node": 6
   }
 }

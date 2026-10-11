@@ -10,11 +10,14 @@ version: <n>
 ## Кратко
 
 ## Список покупок
+<one row per position of the plan that is not owned; a position without a price is a row with «нет цены» in
+the `Средняя` column; every priced row has a URL and a date>
 | Позиция | Кол-во | Магазин 1 | Цена 1 | Магазин 2 | Цена 2 | Средняя | Ссылка | Дата цены |
 |---------|--------|-----------|--------|-----------|--------|---------|--------|-----------|
 
 ## Итого
-<sum of the Средняя column times quantity, with the arithmetic shown>
+<sum of the Средняя column times quantity for the priced positions, split into materials and tools, with the
+arithmetic shown; «цена есть у N из M позиций»>
 
 ## Резерв
 <contingency percentage and amount, with the reason>

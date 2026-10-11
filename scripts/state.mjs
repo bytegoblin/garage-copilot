@@ -2,12 +2,13 @@
 // Single writer of workflows/<run-id>/workflow-state.json.
 // Usage: node scripts/state.mjs <command> [args]   (run `node scripts/state.mjs help` for the list)
 import {
-  readFileSync, writeFileSync, renameSync, mkdirSync, existsSync, readdirSync, statSync,
+  readFileSync, writeFileSync, renameSync, mkdirSync, existsSync, readdirSync, statSync, copyFileSync,
 } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { spawnSync } from 'node:child_process';
-import { dirname, resolve, join, relative, sep } from 'node:path';
+import { dirname, resolve, join, relative, sep, basename } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { budgetCoverage } from './lib/price-table.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const WORKFLOWS = process.env.GARAGE_WORKFLOWS_DIR
@@ -17,6 +18,7 @@ const CONFIG = JSON.parse(readFileSync(join(ROOT, 'config', 'workflow.json'), 'u
 const RUN_ID_RE = new RegExp(CONFIG.run_id_pattern);
 
 const WORKFLOW_TYPES = ['project-plan', 'purchase-decision', 'how-to'];
+const RESEARCHERS = ['diy-researcher', 'product-researcher'];
 const AGENTS = [
   'requirements-formalizer', 'diy-researcher', 'product-researcher', 'project-planner',
   'cost-planner', 'evidence-validator', 'synthesizer', 'final-output-builder',
@@ -119,9 +121,13 @@ function assertAcyclic(nodes) {
   for (const n of nodes) visit(n.id, []);
 }
 
-function markStale(node, reason) {
+// `kind` tells the next `start` why the node runs again: `findings` (a gate failed, the node fixes the quoted
+// places with the small retry budget), `inputs` (an upstream artifact changed), `revision` (the master asked)
+// or `interrupted`. Only `findings` earns the small budget.
+function markStale(node, reason, kind = 'inputs') {
   node.status = 'stale';
   node.last_error = reason;
+  node.rerun = kind;
 }
 
 // Counts a failure against the node's retry budget, then marks it for a re-run or blocks it.
@@ -139,7 +145,7 @@ function failNode(state, node, reason) {
     return `${node.id}: BLOCKED after ${node.retries} retries; skipped ${downstream.map((d) => d.id).join(', ') || 'nothing'}`;
   }
   node.retries += 1;
-  markStale(node, reason);
+  markStale(node, reason, 'findings');
   const reset = [];
   for (const d of downstream) {
     if (['created', 'validated', 'running'].includes(d.status)) {
@@ -158,6 +164,74 @@ function depUsable(state, dep) {
     return state.domain_gates.result === 'pass' && state.domain_gates.processed_sha256 === dep.artifact_sha256;
   }
   return true;
+}
+
+// Depth of a researcher run, decided here and not by the coordinator's memory: the node's own level from the
+// plan, except that a re-run to fix gate findings gets the small `retry` budget. A re-run because the plan,
+// the inputs or the master changed is a real research task again and gets the node's own level. A coverage
+// finding («COVERAGE:») asks for missing prices: that is research too, at the node's own level.
+function depthFor(node) {
+  if (!RESEARCHERS.includes(node.agent)) return null;
+  const levels = CONFIG.research_depth;
+  const own = node.depth && levels[node.depth] ? node.depth : 'standard';
+  const small = node.rerun === 'findings' && !/COVERAGE:/.test(node.last_error || '');
+  const name = small ? 'retry' : own;
+  return { name, max_searches: levels[name].max_searches, max_fetches: levels[name].max_fetches };
+}
+
+function checkDepthField(n) {
+  if (n.depth === undefined || n.depth === null) return;
+  if (!RESEARCHERS.includes(n.agent)) die(`node ${n.id}: depth is only valid for researchers`);
+  const allowed = Object.keys(CONFIG.research_depth).filter((k) => k !== 'retry');
+  if (!allowed.includes(n.depth)) die(`node ${n.id}: depth must be one of ${allowed.join(', ')}`);
+}
+
+// Price-coverage gate: the shopping list of budget.md has one row per position that is not owned. When the
+// share of rows without a price exceeds `price_coverage.max_unpriced_share`, every unpriced position is
+// handed back to the product node whose artifact mentions it (the first product node when none does).
+function priceCoverageFindings(state, runId) {
+  const budget = state.plan.nodes.find((n) => n.agent === 'cost-planner');
+  const products = state.plan.nodes.filter((n) => n.agent === 'product-researcher');
+  if (!budget || products.length === 0) return null;
+  const abs = join(runDir(runId), budget.artifact);
+  if (!existsSync(abs)) return null;
+  const cov = budgetCoverage(readFileSync(abs, 'utf8'));
+  if (cov.total === 0) return null;
+  const limit = CONFIG.price_coverage?.max_unpriced_share ?? 0.3;
+  const share = cov.unpriced.length / cov.total;
+  const summary = { priced: cov.priced, total: cov.total, limit };
+  if (share <= limit) return { summary, rows: [] };
+
+  const texts = products.map((n) => {
+    const f = join(runDir(runId), n.artifact);
+    return { node: n, text: existsSync(f) ? readFileSync(f, 'utf8').toLowerCase() : '' };
+  });
+  const owner = (name) => {
+    const tokens = name.toLowerCase().split(/[^\p{L}\p{N}]+/u).filter((t) => t.length >= 4);
+    let best = texts[0];
+    let bestScore = -1;
+    for (const t of texts) {
+      const score = tokens.filter((tok) => t.text.includes(tok)).length;
+      if (score > bestScore) { best = t; bestScore = score; }
+    }
+    return best.node.id;
+  };
+  const byOwner = new Map();
+  for (const name of cov.unpriced) {
+    const id = owner(name);
+    if (!byOwner.has(id)) byOwner.set(id, []);
+    byOwner.get(id).push(name);
+  }
+  const pct = Math.round(limit * 100);
+  const rows = [...byOwner].map(([node, names]) => ({
+    gate: 'G2',
+    status: 'FAIL',
+    artifact: budget.artifact.replace(/^artifacts\//, ''),
+    node,
+    finding: `COVERAGE: ${cov.unpriced.length} of ${cov.total} positions of the shopping list have no price (limit ${pct}%). Without a price in your category: ${names.join('; ')}`,
+    fix: 'find a price in a local shop for these positions (one page each is enough; an indicative snippet price is acceptable if marked); keep every price you already have; list what still cannot be found with the reason',
+  }));
+  return { summary, rows };
 }
 
 function usage() {
@@ -260,12 +334,14 @@ const commands = {
       if (!ARTIFACT_RE.test(n.artifact || '')) die(`invalid artifact path for node ${n.id}: ${n.artifact}`);
       if (artifacts.has(n.artifact)) die(`artifact owned by two nodes: ${n.artifact}`);
       if (n.gate && n.gate !== 'approval') die(`invalid gate for node ${n.id}: ${n.gate}`);
+      checkDepthField(n);
       ids.add(n.id);
       artifacts.add(n.artifact);
       nodes.push({
         id: n.id,
         agent: n.agent,
         artifact: n.artifact,
+        depth: n.depth || null,
         depends_on: n.depends_on?.length ? [...n.depends_on] : [REQUIREMENTS_NODE],
         gate: n.gate || null,
         status: 'pending',
@@ -311,12 +387,14 @@ const commands = {
       if (!ARTIFACT_RE.test(n.artifact || '')) die(`invalid artifact path for node ${n.id}: ${n.artifact}`);
       if (artifacts.has(n.artifact)) die(`artifact owned by two nodes: ${n.artifact}`);
       if (n.gate && n.gate !== 'approval') die(`invalid gate for node ${n.id}: ${n.gate}`);
+      checkDepthField(n);
       ids.add(n.id);
       artifacts.add(n.artifact);
       added.push({
         id: n.id,
         agent: n.agent,
         artifact: n.artifact,
+        depth: n.depth || null,
         depends_on: n.depends_on?.length ? [...n.depends_on] : [REQUIREMENTS_NODE],
         gate: n.gate || null,
         status: 'pending',
@@ -391,7 +469,12 @@ const commands = {
       }
       const st = child(SELF, ['start', runId, cols[1]]);
       if (st.status !== 0) console.log(`error\t${cols[1]}\t${st.err || st.out}`);
-      else console.log(['started', ...cols.slice(1)].join('\t'));
+      else {
+        // columns: started, node, agent, artifact, attempt=<n>, depth=<name:searches/fetches|->, findings
+        const d = loadState(runId).plan.nodes.find((n) => n.id === cols[1]).depth_used;
+        const depth = d ? `depth=${d.name}:${d.max_searches}/${d.max_fetches}` : 'depth=-';
+        console.log(['started', ...cols.slice(1, 5), depth, ...cols.slice(5)].join('\t'));
+      }
     }
   },
 
@@ -480,7 +563,7 @@ const commands = {
           n.last_error = null;
           changed.push(`${n.id} (created from interrupted run)`);
         } else {
-          markStale(n, 'interrupted: session ended before the artifact was written');
+          markStale(n, 'interrupted: session ended before the artifact was written', 'interrupted');
           changed.push(n.id);
         }
         continue;
@@ -513,10 +596,21 @@ const commands = {
     const have = new Set(rows.map((r) => r.gate));
     for (const g of ['G1', 'G2', 'G3', 'G4', 'G5', 'G6', 'G7']) if (!have.has(g)) die(`gate ${g} has no row`);
 
+    // Price coverage is checked by the script itself, not left to the validator's judgement: when too many
+    // positions of the shopping list have no price, the product nodes that own them get a FAIL row.
+    const cov = priceCoverageFindings(s, runId);
+    if (cov) {
+      s.domain_gates.coverage = cov.summary;
+      if (!rows.some((r) => r.status === 'FAIL' && /COVERAGE:/.test(r.finding))) rows.push(...cov.rows);
+    }
+    // The master may have accepted a plan with unpriced positions (`waive-coverage`): coverage findings are
+    // then informational, every other finding still counts.
+    const waived = Boolean(s.coverage_waived);
+
     s.domain_gates.attempt = (s.domain_gates.attempt || 0) + 1;
     s.domain_gates.results = rows;
     s.domain_gates.processed_sha256 = vnode.artifact_sha256;
-    const fails = rows.filter((r) => r.status === 'FAIL');
+    const fails = rows.filter((r) => r.status === 'FAIL' && !(waived && /COVERAGE:/.test(r.finding)));
     if (fails.length === 0) {
       s.domain_gates.result = 'pass';
       saveState(s);
@@ -551,11 +645,25 @@ const commands = {
     const notReady = node.depends_on.filter((d) => !depUsable(s, byId.get(d)));
     if (notReady.length) die(`${nodeId} has unvalidated dependencies: ${notReady.join(', ')}`);
     if (node.gate === 'approval' && s.approval.status !== 'approved') die(`${nodeId} requires approval`);
+    // A re-run starts from the previous version of its artifact. The file itself stays in place (the agent
+    // reads it first); a copy in artifacts/_prev lets the checker refuse a result that lost prices. Only a
+    // version that passes the structural check becomes the baseline.
+    if (node.status !== 'running' && node.artifact.startsWith('artifacts/')) {
+      const abs = join(runDir(runId), node.artifact);
+      if (existsSync(abs) && child(CHECKER, [abs]).status === 0) {
+        const prevDir = join(runDir(runId), 'artifacts', '_prev');
+        mkdirSync(prevDir, { recursive: true });
+        copyFileSync(abs, join(prevDir, basename(abs)));
+      }
+    }
+    node.depth_used = depthFor(node);
+    node.rerun = null;
     node.status = 'running';
     node.attempts += 1;
     node.started_at = now();
     saveState(s);
-    console.log(`${nodeId}: running (attempt ${node.attempts})`);
+    const du = node.depth_used;
+    console.log(`${nodeId}: running (attempt ${node.attempts})${du ? ` depth=${du.name}:${du.max_searches}/${du.max_fetches}` : ''}`);
   },
 
   // artifact-written <path> -> records the artifact hash for the owning node. Idempotent; silent for unknown files.
@@ -648,13 +756,13 @@ const commands = {
     const cascade = rest.includes('--cascade');
     const reasonIdx = rest.indexOf('--reason');
     const reason = reasonIdx >= 0 ? rest.slice(reasonIdx + 1).join(' ') : 'invalidated';
-    markStale(node, reason);
+    markStale(node, reason, 'revision');
     node.retries = 0; // a revision requested by the master is a new round: the node gets a fresh retry budget
     const touched = [node.id];
     if (cascade) {
       for (const d of dependentsOf(s, node.id)) {
         if (d.status !== 'pending') {
-          markStale(d, `upstream ${node.id} invalidated`);
+          markStale(d, `upstream ${node.id} invalidated`, 'revision');
           d.retries = 0;
           touched.push(d.id);
         }
@@ -717,6 +825,29 @@ const commands = {
     s.memory_writeback = { status: result, at: now() };
     saveState(s);
     console.log(`${runId}: memory write-back ${result}`);
+  },
+
+  // waive-coverage <run-id> -> the master chose to see the plan although some positions have no price.
+  // Records the decision, brings back nodes that were blocked or skipped only because of a coverage finding
+  // (their artifacts are intact) and makes the domain gates treat coverage findings as informational.
+  'waive-coverage'([runId]) {
+    const s = loadState(runId);
+    s.coverage_waived = { at: now() };
+    const back = [];
+    for (const n of s.plan.nodes) {
+      if (!['blocked', 'skipped'].includes(n.status)) continue;
+      if (n.status === 'blocked' && !/COVERAGE:/.test(n.last_error || '')) continue;
+      const abs = join(runDir(runId), n.artifact);
+      const intact = n.artifact_sha256 && existsSync(abs) && fileHash(abs) === n.artifact_sha256;
+      n.status = intact ? 'validated' : 'pending';
+      n.last_error = null;
+      back.push(`${n.id}:${n.status}`);
+    }
+    s.domain_gates.processed_sha256 = null; // the validator's report is applied again, with the waiver
+    s.domain_gates.result = null;
+    if (!s.plan.nodes.some((n) => n.status === 'blocked')) s.status = 'executing';
+    saveState(s);
+    console.log(`${runId}: coverage waived; ${back.join(', ') || 'nothing to release'}`);
   },
 
   // unblock <run-id> <node-id> -> resets a blocked node and its skipped dependents after the cause is fixed

@@ -7,6 +7,8 @@ data/*.db-shm
 
 # Artifacts replaced by a re-plan (kept locally for reference)
 workflows/*/artifacts/_superseded-*/
+# Baseline copies of artifacts that are being re-run (state.mjs start)
+workflows/*/artifacts/_prev/
 
 # Secrets
 .env

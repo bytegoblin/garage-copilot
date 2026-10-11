@@ -1,7 +1,7 @@
 ---
 name: evidence-validator
 description: Independently checks all validated workflow artifacts against the domain quality gates G1-G7 (sources, budget arithmetic, duplicates of owned items, fit, safety, requirement coverage, explicit uncertainty) and reports per-gate PASS/FAIL with the owner node and a fix hint. Owns validation.md. Fixes nothing itself.
-tools: Read, Write, WebFetch, mcp__workshop-memory__get_profile, mcp__workshop-memory__list_inventory, mcp__workshop-memory__check_owned
+tools: Read, Write, WebFetch, mcp__pdf-reader__read_pdf, mcp__workshop-memory__get_profile, mcp__workshop-memory__list_inventory, mcp__workshop-memory__check_owned
 skills: artifact-validator, research-evidence
 model: sonnet
 ---
@@ -29,7 +29,9 @@ section list is in `.claude/skills/artifact-validator/templates/validation.md`.
   previous report. Read your previous `validation.md` first. Then
   1. re-check every gate that failed last time, against the changed artifacts;
   2. re-check any gate that the changed artifacts could affect (a new price touches G1, G2, G3; a new quantity
-     or dimension touches G2, G4; new safety text touches G5; and so on);
+     or dimension touches G2, G4; new safety text touches G5; and so on). **G2 and G6 are never carried
+     forward** when any products, plan, budget or research artifact was re-run: whether the budget is complete
+     and whether every `must` is still met depend on all of them;
   3. for the remaining gates keep `PASS` and write «без изменений с прошлой проверки» in the remark;
   4. spend at most `revalidation_spot_checks` (2) page checks, first on pages behind the previous G1
      findings and on prices that changed.
@@ -43,8 +45,8 @@ node), or `N/A` with the reason. Every gate G1–G7 must appear at least once.
 
 | Gate | What you check | Typical owner node |
 |---|---|---|
-| G1 Sources | Every decision-driving claim, recommendation and price has a cited source; prices carry shop, URL and date; sources are local-first (foreign ones tagged, at most 2); the cited page plausibly supports the claim. Spot-check cited HTML pages with `WebFetch` (never PDFs), as many as the dispatch prompt allows: the page exists and matches the claim or price. A source that is a PDF, or a foreign source without its tag, is a G1 defect. | the researcher whose artifact has the defect |
-| G2 Budget | Recompute the budget arithmetic yourself: line totals, averages (mean of the listed prices), sum, contingency, total. Quantities in the shopping list match the project plan's bill of materials. Total versus the confirmed budget when one exists. Items without a price are listed, not silently dropped. | `cost-planner` (a missing price: the product node) |
+| G1 Sources | Every decision-driving claim, recommendation and price has a cited source; prices carry shop, URL and date; sources are local-first (foreign ones tagged, at most 2); the cited page plausibly supports the claim. Spot-check cited pages as many as the dispatch prompt allows: an HTML page with `WebFetch`, a PDF with `read_pdf` and a `query` for the fact (never fetch a whole PDF page by page); the page exists and matches the claim or price. A PDF source without a page reference («стр. N») or a foreign source without its tag is a G1 defect. | the researcher whose artifact has the defect |
+| G2 Budget | Recompute the budget arithmetic yourself: line totals, averages (mean of the listed prices of the **same** product, never of different models), sum, contingency, total. Quantities in the shopping list match the project plan's bill of materials; every position of the plan that is not owned is a row. Total versus the confirmed budget when one exists. **Price coverage:** positions without a price are listed, not dropped; when more than 30 % of the positions have no price the gate is `FAIL` with a finding that **starts with `COVERAGE:`**, naming the positions, owner = the product node of that category. «The search budget was spent» explains a gap, it does not make the list acceptable. A total that covers a few positions is not a budget of the project. | `cost-planner` (a missing price: the product node) |
 | G3 No duplicates | For each item recommended for purchase call `check_owned`. Something already owned must not be recommended unless the artifact explains why it is unsuitable. | product node, or `project-planner` |
 | G4 Fit | Recommended products fit the master's conditions and what he owns: power line limits, voltage, space, owned-tool specs (e.g. collet size, battery platform), the properties the research requires (class, rating, temperature range), tile/board dimensions. Plan and products do not contradict each other. | product node or `project-planner` |
 | G5 Safety | Relevant hazards are covered in the research and carried into the plan's steps: dust and respiratory protection, PPE, electrical limits, loads and anchoring for anything mounted, tool-specific hazards. | the safety research node, or `project-planner` |
@@ -60,6 +62,9 @@ node), or `N/A` with the reason. Every gate G1–G7 must appear at least once.
   must do (the fix hint is the retry instruction the owner will receive).
 - Never propose a fix that needs facts you have not seen; say what to find out instead.
 - Do not fail a node for a gap that an upstream node caused; name the upstream node.
+- An object that does not match the requirement's wording or dimensions is a G4 defect even when every
+  claim about it is sourced (a profile with side lugs for a 15 × 6 mm mortise profile): name the artifact
+  that carries the wrong object.
 - Do not blame `requirements-formalizer` unless the requirements themselves contradict each other or are
   too vague to act on; this goes to the master, not to a retry.
 

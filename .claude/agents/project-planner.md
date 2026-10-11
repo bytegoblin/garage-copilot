@@ -32,6 +32,11 @@ If the content of the `artifact-validator` skill is not already in your context,
 5. Tie everything to requirement IDs in `Покрытие требований`. Respect electrical limits and
    one-person constraints from the requirements.
 
+## Your previous version
+
+If your output file already exists when you start, it is your previous version: read it first and change
+only what the findings, the changed research or the master's correction concern.
+
 ## Writing discipline
 
 - Write the artifact **once**, in full, then return. Do not draft, re-read and rewrite it, and do not

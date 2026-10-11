@@ -174,3 +174,50 @@ test('onboarding: the coordinator points to the onboarding skill, which covers e
   for (const w of [/who you are/, /what you do/, /approved that plan/, /what you remember/, /no internal names/]) assert.match(intro, w);
   assert.match(intro, /same message as the\s+questions of round 1/);
 });
+
+test('re-runs keep prices and the depth comes from the script, not from the coordinator\'s memory', () => {
+  assert.doesNotMatch(COORDINATOR, /`retry` when `attempt`/);
+  assert.match(COORDINATOR, /depth=<level:searches\/fetches\|->/);
+  assert.match(COORDINATOR, /exactly as the `started` line prints it/);
+  assert.match(COORDINATOR, /waive-coverage/);
+  assert.match(COORDINATOR, /product_nodes\.max_positions_per_node/);
+  for (const a of ['product-researcher', 'diy-researcher']) {
+    const t = read(`.claude/agents/${a}.md`);
+    assert.match(t, /check whether your output file already exists/, `${a}: previous version rule`);
+  }
+  const prod = read('.claude/agents/product-researcher.md');
+  assert.match(prod, /COVERAGE:/);
+  assert.match(prod, /Снято с плана:/);
+  assert.equal(CONFIG.product_nodes.max_positions_per_node, 6);
+  assert.ok(CONFIG.price_coverage.max_unpriced_share > 0 && CONFIG.price_coverage.max_unpriced_share < 1);
+});
+
+test('price coverage is part of the contracts of the budget, the validator and the requirements', () => {
+  const val = read('.claude/agents/evidence-validator.md');
+  assert.match(val, /\*\*G2 and G6 are never carried\s+forward\*\*/);
+  assert.match(val, /starts with `COVERAGE:`/);
+  const cost = read('.claude/agents/cost-planner.md');
+  assert.match(cost, /Every position of\s+the plan that the master does not own is a row/);
+  assert.match(cost, /only across shops for the same product/);
+  const req = read('.claude/agents/requirements-formalizer.md');
+  assert.match(req, /shopping list with a price per position/);
+  const tpl = read('.claude/skills/artifact-validator/templates/budget.md');
+  assert.match(tpl, /нет цены/);
+});
+
+test('PDF documents are read through the pdf-reader server, by the agents that research and validate', () => {
+  const mcp = JSON.parse(read('.mcp.json'));
+  assert.ok(mcp.mcpServers['pdf-reader'], '.mcp.json must register pdf-reader');
+  assert.ok(existsSync(join(ROOT, mcp.mcpServers['pdf-reader'].args[0])));
+  for (const a of ['diy-researcher', 'product-researcher', 'evidence-validator']) {
+    assert.match(read(`.claude/agents/${a}.md`), /^tools:.*mcp__pdf-reader__read_pdf/m, `${a} needs read_pdf`);
+  }
+  const skill = read('.claude/skills/research-evidence/SKILL.md');
+  assert.match(skill, /mcp__pdf-reader__read_pdf/);
+  assert.match(skill, /Ask for facts, not for the document/);
+  assert.doesNotMatch(skill, /Do not fetch PDF files/);
+  assert.equal(CONFIG.source_policy.pdf.allowed, true);
+  assert.equal(CONFIG.source_policy.pdf.require_page_reference, true);
+  assert.ok(CONFIG.source_policy.pdf.max_documents_per_node >= 1);
+  assert.match(read('scripts/setup.sh'), /mcp\/pdf-reader|PDF_DIR/);
+});

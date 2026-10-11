@@ -1,0 +1,19 @@
+{
+  "name": "pdf-reader",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Garage Copilot MCP server: reads the text of a PDF document (data sheet, manual) from a URL, by page or by search words, with page numbers.",
+  "engines": {
+    "node": ">=22.13"
+  },
+  "scripts": {
+    "start": "node server.mjs",
+    "test": "node test/smoke.mjs"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.12.0",
+    "unpdf": "^1.8.1",
+    "zod": "^3.25.0"
+  }
+}

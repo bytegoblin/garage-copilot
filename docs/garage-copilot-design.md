@@ -14,10 +14,17 @@ Deadline: 2026-10-15.
   to the SHA-256 of the plan that was shown (`request-approval`), and `render-html.mjs` re-verifies it.
 - **HTML output (§5, §12):** rendered by the deterministic script `scripts/render-html.mjs` with the template
   of the `garage-html-theme` skill; `final-output-builder` only runs and checks it.
-- **Skills:** six, not three (`master-voice`, `trade-tiling`, `trade-carpentry` added).
-- **Product research:** three parallel nodes (materials, tools, protective equipment) in the regular graph; a
-  single node in the **small** graph; coordinator picks by project size.
+- **Skills:** seven, not three (`master-voice`, `master-onboarding`, `trade-tiling`, `trade-carpentry` added).
+- **Product research:** parallel nodes by group of things to buy (materials, tools, protective equipment by
+  default; a group with more than six positions is split) in the regular graph; a single node in the
+  **small** graph; coordinator picks by project size.
+- **Prices (§11 G2):** the shopping list has a row per position; `state.mjs domain-gates` computes the share of
+  unpriced positions itself and fails G2 above `price_coverage.max_unpriced_share`; a re-run keeps a baseline
+  of its artifact (`artifacts/_prev/`) and may not lose priced rows; research depth per dispatch is decided by
+  the script. After exhausted retries the master chooses `unblock` or `waive-coverage`.
 - **State tooling:** composite commands `start-ready` and `finish-node`, `add-nodes`, `reset-plan`, `verify`.
+- **PDF documents:** read through the second MCP server `pdf-reader` (`read_pdf`, search words or pages, page
+  numbers in the result); the source line of a PDF carries «стр. N».
 - **Limits:** artifact size targets with a 15 % tolerance (`artifact_hard_factor`); `retry` research depth.
 - **Models:** every agent and command declares a model; `node_models` overrides individual nodes.
 - **Hooks:** `approval-gate-guard` also blocks the assistant from running `approve.mjs` and

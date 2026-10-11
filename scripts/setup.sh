@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
-# Garage Copilot setup: installs MCP server dependencies and creates the databases.
+# Garage Copilot setup: installs MCP server dependencies (workshop memory, pdf reader) and creates the databases.
 # Safe to re-run: existing databases are never overwritten.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 MCP_DIR="$ROOT/mcp/workshop-memory"
+PDF_DIR="$ROOT/mcp/pdf-reader"
 
 if ! command -v node >/dev/null 2>&1; then
   echo "Node.js is required (>= 22.13). Install it, e.g. 'nvm install' in the repo root." >&2
@@ -20,6 +21,7 @@ fi
 
 echo "Installing MCP server dependencies..."
 (cd "$MCP_DIR" && npm ci --no-audit --no-fund)
+(cd "$PDF_DIR" && npm ci --no-audit --no-fund)
 
 mkdir -p "$ROOT/data"
 
@@ -33,7 +35,8 @@ else
   echo "Exists: $ROOT/data/demo.db"
 fi
 
-echo "Running MCP smoke test..."
+echo "Running MCP smoke tests..."
 (cd "$MCP_DIR" && npm test --silent 2>&1 | grep -v -e ExperimentalWarning -e trace-warnings)
+(cd "$PDF_DIR" && npm test --silent 2>&1 | grep -v -e ExperimentalWarning -e trace-warnings)
 
 echo "Setup complete."

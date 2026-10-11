@@ -6,6 +6,7 @@ import { readFileSync, existsSync } from 'node:fs';
 import { basename, dirname, resolve, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { findLeaks } from '../.claude/hooks/lib/leaks.mjs';
+import { budgetCoverage, productsPriced, firstTable, hasPrice } from './lib/price-table.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const TEMPLATES = join(ROOT, '.claude', 'skills', 'artifact-validator', 'templates');
@@ -223,8 +224,14 @@ for (const l of foreign) {
       }
       const label = `${u.hostname}${u.pathname}`.slice(0, 70);
       if (/\.pdf$/i.test(u.pathname)) {
-        add(`PDF source "${label}": PDF documents are not read in this project; use the HTML page or list the fact as unknown`);
-        continue;
+        if (policy.pdf?.allowed === false) {
+          add(`PDF source "${label}": PDF documents are not allowed by the source policy`);
+          continue;
+        }
+        if (policy.pdf?.require_page_reference && !/стр\.\s*\d+/i.test(line)) {
+          add(`PDF source "${label}" has no page reference: add «стр. N» to the source line`);
+        }
+        // a PDF still follows the locality rules below
       }
       if (line.includes('[иностранный источник]')) continue;
       const tld = u.hostname.split('.').pop().toLowerCase();
@@ -240,18 +247,37 @@ for (const l of foreign) {
 }
 
 // ----- price rows need a URL and a retrieval date -----
+// In the shopping list a position without any price is allowed (it is the honest way to show a gap and it is
+// counted by the price-coverage gate); every row that does carry a price needs its source and date.
 if (PRICE_SECTIONS[type]) {
-  const rows = section(text, PRICE_SECTIONS[type]).split('\n').filter((l) => l.trim().startsWith('|'));
-  const sepIdx = rows.findIndex((r) => /^\|\s*:?-{2,}/.test(r.trim()));
-  const data = sepIdx >= 0 ? rows.slice(sepIdx + 1) : [];
-  data.forEach((row, i) => {
-    const cells = row.split('|').slice(1, -1).map((c) => c.trim());
-    if (cells.every((c) => c === '' || c === '—' || c === '-')) return;
+  const { header, rows } = firstTable(section(text, PRICE_SECTIONS[type]));
+  const avgCol = type === 'budget' ? header.findIndex((h) => /^средн/i.test(h)) : -1;
+  rows.forEach((cells, i) => {
+    const row = cells.join(' | ');
     if (/уже есть/i.test(row)) return;
+    if (avgCol >= 0 && !hasPrice(cells[avgCol])) return;
     const label = cells[0] || `row ${i + 1}`;
     if (!/https?:\/\/\S+/.test(row)) add(`${PRICE_SECTIONS[type]}: "${label}" has no source URL`);
     if (!/\d{4}-\d{2}-\d{2}/.test(row)) add(`${PRICE_SECTIONS[type]}: "${label}" has no price date (YYYY-MM-DD)`);
   });
+}
+
+// ----- price coverage is visible at the gate; a re-run must not lose prices it already had -----
+if (type === 'budget') {
+  const c = budgetCoverage(text);
+  if (c.total === 0) add('"Список покупок" has no position rows: every position of the plan that is not owned must be a row, priced or marked as without a price');
+  else notes.push(`price coverage: ${c.priced} of ${c.total} positions of the shopping list have a price${c.unpriced.length ? ` (without: ${c.unpriced.map((n) => n.slice(0, 40)).join('; ')})` : ''}`);
+}
+if (type === 'products') {
+  const prev = join(dirname(file), '_prev', basename(file));
+  if (existsSync(prev)) {
+    const before = productsPriced(readFileSync(prev, 'utf8')).priced;
+    const now = productsPriced(text).priced;
+    const explained = /Снято с плана:/.test(section(text, 'Допущения и неопределённости'));
+    if (now < before && !explained) {
+      add(`price regression: ${now} priced candidate rows, the previous version had ${before}. Start from the previous artifact (_prev/${basename(file)}) and keep every price that is still valid; if positions left the plan, list them in "Допущения и неопределённости" on a line starting «Снято с плана:»`);
+    }
+  }
 }
 
 // ----- size cap: keeps artifacts reviewable and downstream context small -----
