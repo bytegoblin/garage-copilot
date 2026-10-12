@@ -1,6 +1,7 @@
 #!/usr/bin/env node
-// The only way a plan gets approved or rejected. Invoked by the /garage-approve and /garage-reject commands
-// through a `!` shell substitution, i.e. by the harness before the model sees the prompt.
+// The only way a plan gets approved or rejected. The /garage-approve and /garage-reject commands tell the
+// assistant to run it with Bash; approval-gate-guard allows exactly that call, and only when the master's own
+// typed command is the last human message of the turn.
 // Usage: node scripts/approve.mjs approve|reject [run-id]
 import { readFileSync, writeFileSync, existsSync, readdirSync, rmSync } from 'node:fs';
 import { createHash } from 'node:crypto';
